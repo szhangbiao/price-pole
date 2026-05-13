@@ -11,17 +11,15 @@
         "cf-typegen": "wrangler types --env-interface CloudflareBindings"
     },
     "devDependencies": {
-        "@cloudflare/vitest-pool-workers": "^0.8.19",
-        "@cloudflare/workers-types": "4.20251210.0",
-        "@types/node": "^24.1.0",
-        "typescript": "^5.8.3",
-        "vitest": "~3.2.0",
-        "wrangler": "4.54.0"
+        "@cloudflare/vitest-pool-workers": "^0.16.4",
+        "@cloudflare/workers-types": "4.20260511.1",
+        "@types/node": "^25.7.0",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.6",
+        "wrangler": "^4.90.1"
     },
     "dependencies": {
-        "@clerk/backend": "^2.6.0",
-        "@clerk/clerk-js": "^5.77.0",
-        "@upstash/redis": "^1.35.1",
-        "hono": "^4.8.9"
+        "@upstash/redis": "^1.38.0",
+        "hono": "^4.12.18"
     }
 }
