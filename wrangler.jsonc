@@ -2,7 +2,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "price-request-cf",
 	"main": "src/index.tsx",
-	"compatibility_date": "2025-12-10",
+	"compatibility_date": "2026-05-13",
 	"assets": {
 		"binding": "ASSETS",
 		"directory": "./public"
