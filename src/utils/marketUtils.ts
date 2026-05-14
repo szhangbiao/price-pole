@@ -14,7 +14,7 @@ export function isMarketOpen(market: MarketType, date: Date = new Date()): boole
     // 转换为北京时间 (UTC+8)
     // Cloudflare Workers 环境下 Date 对象通常是 UTC
     const bjTime = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-    
+
     const day = bjTime.getUTCDay(); // 0 是周日, 6 是周六
     const hour = bjTime.getUTCHours();
     const minute = bjTime.getUTCMinutes();
@@ -32,17 +32,17 @@ export function isMarketOpen(market: MarketType, date: Date = new Date()): boole
 
     switch (market) {
         case 'CN':
-            // A股：9:15-11:30, 13:00-15:15 (包含盘前集合竞价和盘后作业)
-            return (timeValue >= 915 && timeValue <= 1135) || (timeValue >= 1255 && timeValue <= 1515);
-        
+            // A股：9:15-11:30, 13:00-15:30 (包含盘前集合竞价和盘后作业)
+            return (timeValue >= 915 && timeValue <= 1135) || (timeValue >= 1255 && timeValue <= 1530);
+
         case 'HK':
             // 港股：9:15-12:10, 13:00-16:15
             return (timeValue >= 915 && timeValue <= 1210) || (timeValue >= 1255 && timeValue <= 1615);
-        
+
         case 'US':
             // 美股：21:15-05:00 (粗略包含夏令时和冬令时)
             return (timeValue >= 2115 || timeValue <= 505);
-        
+
         case 'GOLD':
             // 黄金：基本全天，除了凌晨 5:00-7:00 之间的结算时间
             return !(timeValue >= 500 && timeValue <= 700);
