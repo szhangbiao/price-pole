@@ -100,16 +100,21 @@ export class SinaService {
             }
             // 3. 黄金/期货行情 (hf_...)
             else if (code.startsWith('hf_')) {
+                const current = Number(parseFloat(dataArray[0]).toFixed(2)) || 0;
+                const lastClose = Number(parseFloat(dataArray[7]).toFixed(2)) || 0;
+                const change = Number((current - lastClose).toFixed(2));
+                const percent = lastClose > 0 ? Number(((change / lastClose) * 100).toFixed(2)) : 0;
+
                 price = {
                     symbol: code,
                     name: dataArray[13] || '伦敦金',
-                    current: Number(parseFloat(dataArray[0]).toFixed(2)) || 0,
-                    change: 0, // 需计算
-                    percent: Number(parseFloat(dataArray[1]).toFixed(2)) || 0,
+                    current: current,
+                    change: change,
+                    percent: percent,
                     open: Number(parseFloat(dataArray[2]).toFixed(2)) || 0,
                     high: Number(parseFloat(dataArray[4]).toFixed(2)) || 0,
                     low: Number(parseFloat(dataArray[5]).toFixed(2)) || 0,
-                    lastClose: Number(parseFloat(dataArray[7]).toFixed(2)) || 0,
+                    lastClose: lastClose,
                     volume: 0,
                     amount: 0,
                     updateTime: `${dataArray[12]} ${dataArray[6]}`,
@@ -117,7 +122,31 @@ export class SinaService {
                     market: 'GOLD'
                 };
             }
-            // 4. 国内 A股/指数简版 (s_sh, s_sz)
+            // 4. 国内 A股/指数 完整版 (sh..., sz...)
+            else if (code.startsWith('sh') || code.startsWith('sz')) {
+                const current = Number(parseFloat(dataArray[3]).toFixed(2)) || 0;
+                const lastClose = Number(parseFloat(dataArray[2]).toFixed(2)) || 0;
+                const change = Number((current - lastClose).toFixed(2));
+                const percent = lastClose > 0 ? Number(((change / lastClose) * 100).toFixed(2)) : 0;
+
+                price = {
+                    symbol: code,
+                    name: dataArray[0],
+                    current: current,
+                    change: change,
+                    percent: percent,
+                    open: Number(parseFloat(dataArray[1]).toFixed(2)) || 0,
+                    high: Number(parseFloat(dataArray[4]).toFixed(2)) || 0,
+                    low: Number(parseFloat(dataArray[5]).toFixed(2)) || 0,
+                    lastClose: lastClose,
+                    volume: parseInt(dataArray[8]) || 0,
+                    amount: parseInt(dataArray[9]) || 0,
+                    updateTime: `${dataArray[30]} ${dataArray[31]}`,
+                    fetchTime: nowIso,
+                    market: 'CN'
+                };
+            }
+            // 5. 国内 A股/指数 简版 (s_sh, s_sz)
             else if (code.startsWith('s_')) {
                 price = {
                     symbol: code,

@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { sendWxTemplateMsgToUser } from '../handler/wechatHandler';
 import { getPriceData, savePriceData, clearCache } from '../handler/priceHandler';
 import { sendEmail } from '../handler/emailHandler';
+import { getMarketData } from '../handler/monitorHandler';
 
 const api = new Hono<{ Bindings: Env }>();
 
@@ -9,6 +10,9 @@ const api = new Hono<{ Bindings: Env }>();
 api.get('/price/request', getPriceData);
 api.post('/price/post', savePriceData);
 api.delete('/clearCache', clearCache);
+
+// 市场行情数据查询接口
+api.get('/market/prices', getMarketData);
 
 // 邮件测试接口
 api.get('/email', sendEmail);

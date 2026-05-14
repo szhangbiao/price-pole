@@ -1,8 +1,9 @@
+import { Context } from 'hono';
 import { SinaService } from '../service/sinaService';
 import { isMarketOpen } from '../utils/marketUtils';
-import { MonitorRule, MarketPrice } from '../types/monitor';
+import { MarketPrice } from '../types/monitor';
+import { H_SHARE_INDEX, US_STOCK_INDEX, GOLD_INDEX } from '../config/markets';
 
-const KEY_MONITOR_RULES = 'monitor_rules';
 const KEY_MONITOR_STATE = 'monitor_state';
 
 export class MonitorHandler {
@@ -15,71 +16,72 @@ export class MonitorHandler {
 	}
 
 	/**
-	 * 执行监控逻辑
+	 * 执行监控逻辑：监控大盘指数及重点标的是否达到今日最高或最低
 	 */
 	async runMonitor(): Promise<void> {
-		// 1. 获取规则
-		const rules = await this.getRules();
-		const activeRules = rules.filter((r) => r.enabled);
-		if (activeRules.length === 0) return;
+		// 1. 汇总监控标的 (从 markets 配置中获取)
+		const allIndices = [
+			//...H_SHARE_INDEX,
+			//...US_STOCK_INDEX,
+			...GOLD_INDEX
+		];
+		const symbols = Array.from(new Set(allIndices.map(idx => idx.code)));
 
-		// 2. 提取需要抓取的代码
-		const symbols = Array.from(new Set(activeRules.map((r) => r.symbol)));
-
-		// 3. 获取价格 (内部已处理 A/港/美不同格式)
+		// 2. 获取实时行情
 		const prices = await this.sinaService.getMarketData(symbols);
-		const priceMap = new Map(prices.map((p) => [p.symbol, p]));
 
-		// 4. 获取报警状态 (防骚扰)
+		// 3. 获取持久化状态
 		const states = await this.getStates();
+		const today = new Date().toISOString().split('T')[0];
 
-		// 5. 遍历规则进行检查
-		for (const rule of activeRules) {
-			const price = priceMap.get(rule.symbol);
-			if (!price) continue;
-
-			// 检查市场是否开盘 (根据价格对象中的 market 标识)
+		for (const price of prices) {
 			if (!isMarketOpen(price.market)) continue;
-
-			if (this.isTriggered(rule, price)) {
-				// 检查冷却时间 (例如 1 小时)
-				const lastAlert = states[rule.id] || 0;
-				const now = Date.now();
-				if (now - lastAlert > 1 * 60 * 60 * 1000) {
-					console.log(`[触发告警] ${price.name} (${price.symbol}) 当前价: ${price.current}, 涨幅: ${price.percent}%`);
-
-					// TODO: 在此处调用通知服务
-					// const success = await this.notifyService.sendAlert(rule, price, this.env);
-					// if (success) states[rule.id] = now;
-
-					// 临时：仅更新状态
-					states[rule.id] = now;
+			if (price.market === 'GOLD') {
+				// --- 黄金监控逻辑：实时极值突破 ---
+				const highKey = `gold_high_${price.symbol}_${today}`;
+				const lowKey = `gold_low_${price.symbol}_${today}`;
+				const lastHigh = states[highKey] || 0;
+				const lastLow = states[lowKey] || 0;
+				// 检查新高 (只要有突破就立即触发，无冷却限制)
+				if (price.high > 0 && price.high > lastHigh) {
+					if (lastHigh > 0) {
+						console.log(`[黄金新高告警] ${price.name} 突破今日前高: ${price.high} (前高: ${lastHigh})`);
+						// TODO: 接入通知服务
+					}
+					states[highKey] = price.high;
+				}
+				// 检查新低
+				if (price.low > 0 && (lastLow === 0 || price.low < lastLow)) {
+					if (lastLow > 0) {
+						console.log(`[黄金新低告警] ${price.name} 跌破今日前低: ${price.low} (前低: ${lastLow})`);
+						// TODO: 接入通知服务
+					}
+					states[lowKey] = price.low;
+				}
+			} else {
+				// --- 指数监控逻辑：整数百分比突破 ---
+				const levelKey = `idx_level_${price.symbol}_${today}`;
+				const lastLevel = states[levelKey] || 0;
+				// 计算当前涨跌幅的整数部分 (如 1.2% -> 1, -1.5% -> -1)
+				const currentPercent = price.percent;
+				const currentLevel = currentPercent > 0 ? Math.floor(currentPercent) : Math.ceil(currentPercent);
+				// 当绝对值大于等于 1% 且 整数位发生变化时触发
+				if (Math.abs(currentLevel) >= 1 && currentLevel !== lastLevel) {
+					console.log(`[指数波动告警] ${price.name} 涨跌幅跨越整数位: ${currentLevel}% (当前: ${currentPercent}%)`);
+					// TODO: 接入通知服务
+					states[levelKey] = currentLevel;
 				}
 			}
 		}
-
-		// 6. 保存状态
+		// 4. 保存最新状态
 		await this.saveStates(states);
 	}
 
-	private isTriggered(rule: MonitorRule, price: MarketPrice): boolean {
-		switch (rule.type) {
-			case 'above':
-				return price.current >= rule.threshold;
-			case 'below':
-				return price.current <= rule.threshold;
-			case 'percent_up':
-				return price.percent >= rule.threshold;
-			case 'percent_down':
-				return price.percent <= -rule.threshold;
-			default:
-				return false;
-		}
-	}
-
-	private async getRules(): Promise<MonitorRule[]> {
-		const data = await this.env.PRICE_DATA.get(KEY_MONITOR_RULES);
-		return data ? JSON.parse(data) : [];
+	/**
+	 * 批量获取标的的结构化行情数据
+	 */
+	async getSymbolsData(symbols: string[]): Promise<MarketPrice[]> {
+		return await this.sinaService.getMarketData(symbols);
 	}
 
 	private async getStates(): Promise<Record<string, number>> {
@@ -90,4 +92,28 @@ export class MonitorHandler {
 	private async saveStates(states: Record<string, number>): Promise<void> {
 		await this.env.PRICE_DATA.put(KEY_MONITOR_STATE, JSON.stringify(states));
 	}
+}
+
+/**
+ * 接口处理器：获取实时行情 (支持逗号分隔多个代码)
+ */
+export async function getMarketData(c: Context<{ Bindings: Env }>) {
+	const symbolStr = c.req.query('symbol');
+	if (!symbolStr) {
+		return c.json({ success: false, message: '缺少 symbol 参数' }, 400);
+	}
+
+	const symbols = symbolStr.split(',').filter(s => s.trim().length > 0);
+	if (symbols.length === 0) {
+		return c.json({ success: false, message: '无效的 symbol 参数' }, 400);
+	}
+
+	const handler = new MonitorHandler(c.env);
+	const data = await handler.getSymbolsData(symbols);
+
+	return c.json({
+		success: true,
+		count: data.length,
+		data: symbols.length === 1 ? data[0] : data
+	});
 }
