@@ -1,6 +1,8 @@
 import { PriceHandler } from '../handler/priceHandler';
 import { EmailService } from '../service/emailService';
 import { WechatSendService } from '../service/wechatSend';
+import { isMarketOpen } from '../utils/marketUtils';
+import { MonitorHandler } from '../handler/monitorHandler';
 
 /**
  * 检查是否应该跳过当前触发时间
@@ -53,48 +55,52 @@ function shouldSendWxMessage(scheduledTime: number): boolean {
  * 处理定时任务
  */
 export async function handleScheduledTask(event: ScheduledEvent, env: Env): Promise<void> {
-    console.log('定时任务触发，开始刷新价格数据...');
-    console.log('触发时间:', new Date(event.scheduledTime).toISOString());
+    const scheduledDate = new Date(event.scheduledTime);
+    console.log('定时任务触发，时间:', scheduledDate.toISOString());
 
-    // 检查是否应该跳过此次触发
-    if (shouldSkipScheduledTask(event.scheduledTime)) {
-        return;
-    }
-
-    const priceHandler = new PriceHandler(env);
-
-    // 强制刷新价格数据（跳过缓存，从 API 获取最新数据）
-    const data = await priceHandler.getPriceData('request_data', true);
-
-    if (!data) {
-        console.error('定时任务执行失败，无法获取价格数据');
-        return;
-    }
-
-    console.log('定时任务执行成功，价格数据已更新');
-    console.log('数据来源:', data.source);
-
-    // 检查是否需要发送邮件
-    if (shouldSendEmail(event.scheduledTime)) {
-        console.log('触发每日邮件发送任务...');
-        const emailService = new EmailService();
-        const emailSent = await emailService.sendPriceHtmlEmail('shizhangbiao@booslink.cn', data);
-
-        if (emailSent) {
-            console.log('每日价格更新邮件发送成功');
+    // 1. 判断是否需要执行“旧业务”的价格刷新
+    // 条件：如果是通知发送时间，或者 A股市场处于开盘时段
+    const isNotifyTime = shouldSendEmail(event.scheduledTime) || shouldSendWxMessage(event.scheduledTime);
+    const isCNMarketOpen = isMarketOpen('CN', scheduledDate);
+    
+    // 只有在开盘时间或者需要发送通知的时间才去刷新价格
+    if (isCNMarketOpen || isNotifyTime) {
+        console.log('符合刷新条件，开始刷新价格数据...');
+        
+        // 检查是否应该跳过此次触发（保留原逻辑：跳过上午9点）
+        if (shouldSkipScheduledTask(event.scheduledTime)) {
+            // 注意：如果 9:00 是通知时间则不能跳过，但目前通知都在下午，所以安全
         } else {
-            console.error('每日价格更新邮件发送失败');
+            const priceHandler = new PriceHandler(env);
+            // 强制刷新价格数据
+            const data = await priceHandler.getPriceData('request_data', true);
+
+            if (data) {
+                console.log('价格数据更新成功');
+                
+                // 2. 检查并执行通知逻辑 (邮件/微信)
+                if (shouldSendEmail(event.scheduledTime)) {
+                    console.log('触发每日邮件发送任务...');
+                    const emailService = new EmailService();
+                    await emailService.sendPriceHtmlEmail('shizhangbiao@booslink.cn', data);
+                }
+
+                if (shouldSendWxMessage(event.scheduledTime)) {
+                    console.log('触发每日微信消息发送任务...');
+                    const wechatSendService = new WechatSendService();
+                    await wechatSendService.sendWxPrice(env.WX_TO_USERID, env.WX_TEMPLATE_ID, data);
+                }
+            }
         }
+    } else {
+        console.log('当前非交易时段且无通知任务，跳过价格刷新');
     }
-    // 检查是否需要发送微信消息
-    if (shouldSendWxMessage(event.scheduledTime)) {
-        console.log('触发每日微信消息发送任务...');
-        const wechatSendService = new WechatSendService();
-        const wxSent = await wechatSendService.sendWxPrice(env.WX_TO_USERID, env.WX_TEMPLATE_ID, data);
-        if (wxSent) {
-            console.log('每日价格更新微信消息发送成功');
-        } else {
-            console.error('每日价格更新微信消息发送失败');
-        }
+
+    // 3. 执行新业务监控逻辑 (独立于旧业务)
+    try {
+        const monitorHandler = new MonitorHandler(env);
+        await monitorHandler.runMonitor();
+    } catch (error) {
+        console.error('监控系统运行出错:', error);
     }
 }

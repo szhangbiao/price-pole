@@ -5,34 +5,23 @@
 	"compatibility_date": "2026-05-13",
 	"assets": {
 		"binding": "ASSETS",
-		"directory": "./public"
+		"directory": "./public",
 	},
 	"observability": {
-		"enabled": true
+		"enabled": true,
 	},
 	"vars": {
 		"GOLD_API_URL": "http://web.juhe.cn/finance/gold/shgold?v=1&key=",
-		"EXCHANGE_RATE_API_URL": "http://op.juhe.cn/onebox/exchange/currency?from=USD&to=CNY&version=2&key="
+		"EXCHANGE_RATE_API_URL": "http://op.juhe.cn/onebox/exchange/currency?from=USD&to=CNY&version=2&key=",
 	},
 	"kv_namespaces": [
 		{
 			"binding": "PRICE_DATA",
 			"id": "a63d3614c3a64c6ebd00777c1b676866",
-			"preview_id": "5188a577452e4cc99bf1a0d129223aa6"
-		}
+			"preview_id": "5188a577452e4cc99bf1a0d129223aa6",
+		},
 	],
 	"triggers": {
-		// 定时任务配置 - 所有时间均为 UTC 时区
-		// 优化为每天 3 次触发，符合 Cloudflare Workers 免费计划限制
-		// 执行时间：周一到周五（MON-FRI）
-		// 注意：北京时间 = UTC 时间 + 8 小时
-		"crons": [
-			// 上午交易时段：北京时间 9:00-11:30 每半小时（UTC 1-3点每30分钟）
-			"*/30 1-3 * * MON-FRI", // UTC 01:00, 01:30, 02:00, 02:30, 03:00, 03:30 = 北京时间 09:00, 09:30, 10:00, 10:30, 11:00, 11:30
-			// 下午交易时段：北京时间 13:00-15:30 每半小时（UTC 5-7点每30分钟）
-			"*/30 5-7 * * MON-FRI", // UTC 05:00, 05:30, 06:00, 06:30, 07:00, 07:30 = 北京时间 13:00, 13:30, 14:00, 14:30, 15:00, 15:30
-			// 每日邮件发送：北京时间 14:50（接近收盘）
-			"50 6 * * MON-FRI" // UTC 06:50 = 北京时间 14:50
-		]
-	}
+		"crons": ["*/5 * * * *"],
+	},
 }
