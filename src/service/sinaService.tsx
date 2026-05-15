@@ -165,6 +165,25 @@ export class SinaService {
                     market: 'CN'
                 };
             }
+            // 6. 全球指数行情 (znb_...)
+            else if (code.startsWith('znb_')) {
+                price = {
+                    symbol: code,
+                    name: dataArray[0],
+                    current: Number(parseFloat(dataArray[1]).toFixed(2)) || 0,
+                    change: Number(parseFloat(dataArray[2]).toFixed(2)) || 0,
+                    percent: Number(parseFloat(dataArray[3]).toFixed(2)) || 0,
+                    open: Number(parseFloat(dataArray[8]).toFixed(2)) || 0,
+                    high: Number(parseFloat(dataArray[10]).toFixed(2)) || 0,
+                    low: Number(parseFloat(dataArray[11]).toFixed(2)) || 0,
+                    lastClose: Number(parseFloat(dataArray[9]).toFixed(2)) || 0,
+                    volume: parseInt(dataArray[12]) || 0,
+                    amount: 0,
+                    updateTime: `${dataArray[6]} ${dataArray[7]}`,
+                    fetchTime: nowIso,
+                    market: 'GLOBAL'
+                };
+            }
 
             if (price) results.push(price);
         }

@@ -8,6 +8,7 @@ export const A_SHARE_INDEX = [
     //{ code: "sh000852", name: "中证1000" },
     { code: "sh000016", name: "上证50" },
     { code: "sh000688", name: "科创50" },
+    { code: "sh000699", name: "科创200" },
     { code: "sz399673", name: "创业板50" }
 ];
 
@@ -25,4 +26,9 @@ export const US_STOCK_INDEX = [
 
 export const GOLD_INDEX = [
     { code: "hf_XAU", name: "伦敦金" }
+];
+
+export const GLOBAL_INDEX = [
+    { code: "znb_KOSPI", name: "韩国KOSPI指数" },
+    { code: "znb_NKY", name: "日经225指数" }
 ];

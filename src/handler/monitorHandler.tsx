@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { SinaService } from '../service/sinaService';
 import { isMarketOpen } from '../utils/marketUtils';
 import { MarketPrice } from '../types/monitor';
-import { H_SHARE_INDEX, US_STOCK_INDEX, GOLD_INDEX } from '../config/markets';
+import { H_SHARE_INDEX, US_STOCK_INDEX, GOLD_INDEX, GLOBAL_INDEX } from '../config/markets';
 import { WechatSendService } from '../service/wechatSend';
 import { PriceAlert } from '../types/price';
 
@@ -27,7 +27,8 @@ export class MonitorHandler {
 		const allIndices = [
 			...H_SHARE_INDEX,
 			...US_STOCK_INDEX,
-			...GOLD_INDEX
+			...GOLD_INDEX,
+			...GLOBAL_INDEX
 		];
 		const symbols = Array.from(new Set(allIndices.map(idx => idx.code)));
 
@@ -111,7 +112,7 @@ export class MonitorHandler {
 
 	private async sendAlertToWechat(priceAlert: PriceAlert): Promise<void> {
 		const toUserId = this.env.WX_TO_USERID;
-		const templateId = 'Rs1nTsKg3kiUrOeMAng9UkauEL6BwyUgOHp0DqiccxM';
+		const templateId = priceAlert.name.includes('伦敦金') ? '-SAGVkPxKhCTCZcXZavNvaBMJUy7SdMWizNl7e8Iw88' : 'Rs1nTsKg3kiUrOeMAng9UkauEL6BwyUgOHp0DqiccxM';
 		await this.wechatService.sendPriceAlert(toUserId, templateId, priceAlert);
 	}
 }

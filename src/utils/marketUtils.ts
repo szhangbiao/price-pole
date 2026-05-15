@@ -2,7 +2,7 @@
 /**
  * 市场类型
  */
-export type MarketType = 'CN' | 'HK' | 'US' | 'GOLD';
+export type MarketType = 'CN' | 'HK' | 'US' | 'GOLD' | 'GLOBAL';
 
 /**
  * 判断指定市场在当前时间是否处于交易时段（北京时间）
@@ -46,6 +46,10 @@ export function isMarketOpen(market: MarketType, date: Date = new Date()): boole
         case 'GOLD':
             // 黄金：基本全天，除了凌晨 5:00-7:00 之间的结算时间
             return !(timeValue >= 500 && timeValue <= 700);
+
+        case 'GLOBAL':
+            // 全球指数（主要针对日韩）：08:00 - 15:00 (北京时间)
+            return (timeValue >= 800 && timeValue <= 1500);
 
         default:
             return false;
