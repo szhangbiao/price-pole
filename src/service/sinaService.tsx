@@ -60,7 +60,7 @@ export class SinaService {
             if (code.startsWith('rt_hk')) {
                 price = {
                     symbol: code,
-                    name: dataArray[0],
+                    name: dataArray[1],
                     current: Number(parseFloat(dataArray[6]).toFixed(2)) || 0,
                     change: Number(parseFloat(dataArray[7]).toFixed(2)) || 0,
                     percent: Number(parseFloat(dataArray[8]).toFixed(2)) || 0,

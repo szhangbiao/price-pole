@@ -4,8 +4,8 @@ export const A_SHARE_INDEX = [
     { code: "sz399001", name: "深证成指" },
     { code: "sz399006", name: "创业板指" },
     { code: "sh000300", name: "沪深300" },
-    { code: "sh000905", name: "中证500" },
-    { code: "sh000852", name: "中证1000" },
+    //{ code: "sh000905", name: "中证500" },
+    //{ code: "sh000852", name: "中证1000" },
     { code: "sh000016", name: "上证50" },
     { code: "sh000688", name: "科创50" },
     { code: "sz399673", name: "创业板50" }

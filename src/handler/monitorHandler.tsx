@@ -82,7 +82,7 @@ export class MonitorHandler {
 					await this.sendAlertToWechat({
 						name: price.name,
 						price: `${price.current} (${price.percent}%)`,
-						detail: `涨跌幅跨越整数位: ${currentLevel}% (当前: ${currentPercent}%)`,
+						detail: `涨跌幅到: ${currentLevel}% (当前: ${currentPercent}%)`,
 						remark: '市场指数大幅波动，请留意风险。'
 					});
 					states[levelKey] = currentLevel;
@@ -111,7 +111,7 @@ export class MonitorHandler {
 
 	private async sendAlertToWechat(priceAlert: PriceAlert): Promise<void> {
 		const toUserId = this.env.WX_TO_USERID;
-		const templateId = 'kj1yJCNbB9iq8MD4pwMCMLhjA1tdySSdZlZYhPaVQX8';
+		const templateId = 'Rs1nTsKg3kiUrOeMAng9UkauEL6BwyUgOHp0DqiccxM';
 		await this.wechatService.sendPriceAlert(toUserId, templateId, priceAlert);
 	}
 }

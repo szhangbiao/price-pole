@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { sendWxTemplateMsgToUser } from '../handler/wechatHandler';
 import { getPriceData, savePriceData, clearCache } from '../handler/priceHandler';
 import { sendEmail } from '../handler/emailHandler';
-import { getMarketData } from '../handler/monitorHandler';
+import { getMarketData, MonitorHandler } from '../handler/monitorHandler';
 
 const api = new Hono<{ Bindings: Env }>();
 
@@ -13,6 +13,13 @@ api.delete('/clearCache', clearCache);
 
 // 市场行情数据查询接口
 api.get('/market/prices', getMarketData);
+
+// 监控任务手动触发接口 (用于本地测试)
+api.get('/monitor/run', async (c) => {
+	const handler = new MonitorHandler(c.env);
+	await handler.runMonitor();
+	return c.json({ success: true, message: '监控逻辑执行完成' });
+});
 
 // 邮件测试接口
 api.get('/email', sendEmail);
