@@ -100,6 +100,8 @@ export class SinaService {
             }
             // 3. 黄金/期货行情 (hf_...)
             else if (code.startsWith('hf_')) {
+                // 新浪国际期货 (hf_XAU, hf_GC, etc.)
+                // 0: 最新价, 1: 昨收/结算参考, 2: 买入, 3: 卖出, 4: 最高, 5: 最低, 6: 时间, 7: 昨结算, 8: 开盘, 12: 日期, 13: 名称
                 const current = Number(parseFloat(dataArray[0]).toFixed(2)) || 0;
                 const lastClose = Number(parseFloat(dataArray[7]).toFixed(2)) || 0;
                 const change = Number((current - lastClose).toFixed(2));
@@ -111,7 +113,7 @@ export class SinaService {
                     current: current,
                     change: change,
                     percent: percent,
-                    open: Number(parseFloat(dataArray[2]).toFixed(2)) || 0,
+                    open: Number(parseFloat(dataArray[8]).toFixed(2)) || 0,
                     high: Number(parseFloat(dataArray[4]).toFixed(2)) || 0,
                     low: Number(parseFloat(dataArray[5]).toFixed(2)) || 0,
                     lastClose: lastClose,
