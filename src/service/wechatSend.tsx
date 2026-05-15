@@ -1,4 +1,4 @@
-import { PriceData } from '../types/price';
+import { PriceData, PriceAlert } from '../types/price';
 
 export class WechatSendService {
 
@@ -57,6 +57,38 @@ export class WechatSendService {
                 throw new Error(`Wechat API call failed: ${response.status} ${errorText}`);
             }
 
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to send wechat notification:', error);
+            throw error;
+        }
+    }
+
+    public async sendPriceAlert(toUserId: string, templateId: string, priceAlert: PriceAlert) {
+        const payload = {
+            toUserId: toUserId,
+            templateId: templateId,
+            templateData: {
+                keyword1: { value: priceAlert.name },
+                keyword2: { value: priceAlert.price },
+                keyword3: { value: priceAlert.detail },
+                remark: { value: priceAlert.remark }
+            },
+            url: "https://price-pole.szhangbiao.cn"
+        };
+        try {
+            const response = await fetch(this.WX_SEND_API, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Wechat API call failed: ${response.status} ${errorText}`);
+            }
             return await response.json();
         } catch (error) {
             console.error('Failed to send wechat notification:', error);

@@ -3,15 +3,19 @@ import { SinaService } from '../service/sinaService';
 import { isMarketOpen } from '../utils/marketUtils';
 import { MarketPrice } from '../types/monitor';
 import { H_SHARE_INDEX, US_STOCK_INDEX, GOLD_INDEX } from '../config/markets';
+import { WechatSendService } from '../service/wechatSend';
+import { PriceAlert } from '../types/price';
 
 const KEY_MONITOR_STATE = 'monitor_state';
 
 export class MonitorHandler {
 	private sinaService: SinaService;
+	private wechatService: WechatSendService;
 	private env: Env;
 
 	constructor(env: Env) {
 		this.sinaService = new SinaService();
+		this.wechatService = new WechatSendService();
 		this.env = env;
 	}
 
@@ -21,8 +25,8 @@ export class MonitorHandler {
 	async runMonitor(): Promise<void> {
 		// 1. 汇总监控标的 (从 markets 配置中获取)
 		const allIndices = [
-			//...H_SHARE_INDEX,
-			//...US_STOCK_INDEX,
+			...H_SHARE_INDEX,
+			...US_STOCK_INDEX,
 			...GOLD_INDEX
 		];
 		const symbols = Array.from(new Set(allIndices.map(idx => idx.code)));
@@ -45,16 +49,24 @@ export class MonitorHandler {
 				// 检查新高 (只要有突破就立即触发，无冷却限制)
 				if (price.high > 0 && price.high > lastHigh) {
 					if (lastHigh > 0) {
-						console.log(`[黄金新高告警] ${price.name} 突破今日前高: ${price.high} (前高: ${lastHigh})`);
-						// TODO: 接入通知服务
+						await this.sendAlertToWechat({
+							name: price.name,
+							price: `${price.current} (${price.percent}%)`,
+							detail: `突破今日前高: ${price.high} (前高: ${lastHigh})`,
+							remark: '黄金价格突破今日极值，请留意行情变动。'
+						});
 					}
 					states[highKey] = price.high;
 				}
 				// 检查新低
 				if (price.low > 0 && (lastLow === 0 || price.low < lastLow)) {
 					if (lastLow > 0) {
-						console.log(`[黄金新低告警] ${price.name} 跌破今日前低: ${price.low} (前低: ${lastLow})`);
-						// TODO: 接入通知服务
+						await this.sendAlertToWechat({
+							name: price.name,
+							price: `${price.current} (${price.percent}%)`,
+							detail: `跌破今日前低: ${price.low} (前低: ${lastLow})`,
+							remark: '黄金价格跌破今日极值，请留意行情变动。'
+						});
 					}
 					states[lowKey] = price.low;
 				}
@@ -67,8 +79,12 @@ export class MonitorHandler {
 				const currentLevel = currentPercent > 0 ? Math.floor(currentPercent) : Math.ceil(currentPercent);
 				// 当绝对值大于等于 1% 且 整数位发生变化时触发
 				if (Math.abs(currentLevel) >= 1 && currentLevel !== lastLevel) {
-					console.log(`[指数波动告警] ${price.name} 涨跌幅跨越整数位: ${currentLevel}% (当前: ${currentPercent}%)`);
-					// TODO: 接入通知服务
+					await this.sendAlertToWechat({
+						name: price.name,
+						price: `${price.current} (${price.percent}%)`,
+						detail: `涨跌幅跨越整数位: ${currentLevel}% (当前: ${currentPercent}%)`,
+						remark: '市场指数大幅波动，请留意风险。'
+					});
 					states[levelKey] = currentLevel;
 				}
 			}
@@ -91,6 +107,12 @@ export class MonitorHandler {
 
 	private async saveStates(states: Record<string, number>): Promise<void> {
 		await this.env.PRICE_DATA.put(KEY_MONITOR_STATE, JSON.stringify(states));
+	}
+
+	private async sendAlertToWechat(priceAlert: PriceAlert): Promise<void> {
+		const toUserId = this.env.WX_TO_USERID;
+		const templateId = 'kj1yJCNbB9iq8MD4pwMCMLhjA1tdySSdZlZYhPaVQX8';
+		await this.wechatService.sendPriceAlert(toUserId, templateId, priceAlert);
 	}
 }
 

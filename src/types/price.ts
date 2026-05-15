@@ -70,3 +70,11 @@ export interface PriceStorage {
   data: any;
   source: string;
 }
+
+export interface PriceAlert {
+  name: string;
+  price: string;
+  detail: string;
+  remark: string;
+}
+
