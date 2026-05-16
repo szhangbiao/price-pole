@@ -1,7 +1,7 @@
 import { PriceHandler } from '../handler/priceHandler';
 import { EmailService } from '../service/emailService';
 import { WechatSendService } from '../service/wechatSend';
-import { isMarketOpen } from '../utils/marketUtils';
+import { isMarketOpen, isAnyMarketOpen } from '../utils/marketUtils';
 import { MonitorHandler } from '../handler/monitorHandler';
 
 /**
@@ -67,10 +67,15 @@ export async function handleScheduledTask(event: ScheduledEvent, env: Env): Prom
     }
 
     // 3. 执行新业务监控逻辑 (独立于旧业务)
-    try {
-        const monitorHandler = new MonitorHandler(env);
-        await monitorHandler.runMonitor();
-    } catch (error) {
-        console.error('监控系统运行出错:', error);
+    // 只有在至少有一个市场开盘时才运行监控，以节省 Redis 资源
+    if (isAnyMarketOpen(scheduledDate)) {
+        try {
+            const monitorHandler = new MonitorHandler(env);
+            await monitorHandler.runMonitor();
+        } catch (error) {
+            console.error('监控系统运行出错:', error);
+        }
+    } else {
+        console.log('跳过监控系统运行: 全球市场均处于休市时段');
     }
 }

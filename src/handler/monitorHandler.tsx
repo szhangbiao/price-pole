@@ -5,17 +5,24 @@ import { MarketPrice } from '../types/monitor';
 import { H_SHARE_INDEX, US_STOCK_INDEX, COMMODITY_INDEX, GLOBAL_INDEX } from '../config/markets';
 import { WechatSendService } from '../service/wechatSend';
 import { PriceAlert } from '../types/price';
+import { UpstashService } from '../service/upstashService';
 
 const KEY_MONITOR_STATE = 'monitor_state';
+const KEY_LATEST_PRICES = 'latest_prices';
 
+/**
+ * 极值监控处理器
+ */
 export class MonitorHandler {
 	private sinaService: SinaService;
 	private wechatService: WechatSendService;
+	private upstashService: UpstashService;
 	private env: Env;
 
 	constructor(env: Env) {
 		this.sinaService = new SinaService();
 		this.wechatService = new WechatSendService();
+		this.upstashService = new UpstashService(env, 7 * 24 * 3600); // 设置 7 天过期时间
 		this.env = env;
 	}
 
@@ -35,7 +42,10 @@ export class MonitorHandler {
 		// 2. 获取实时行情
 		const prices = await this.sinaService.getMarketData(symbols);
 
-		// 3. 获取持久化状态
+		// 3. 更新并持久化所有市场的最新价格快照 (防止休市市场数据被覆盖)
+		await this.updateLatestPrices(prices);
+
+		// 4. 获取极值监控所需的持久化状态
 		const states = await this.getStates();
 		const today = new Date().toISOString().split('T')[0];
 
@@ -110,12 +120,12 @@ export class MonitorHandler {
 	}
 
 	private async getStates(): Promise<Record<string, number>> {
-		const data = await this.env.PRICE_DATA.get(KEY_MONITOR_STATE);
-		return data ? JSON.parse(data) : {};
+		const storage = await this.upstashService.getPrice(KEY_MONITOR_STATE);
+		return (storage?.data as Record<string, number>) || {};
 	}
 
 	private async saveStates(states: Record<string, number>): Promise<void> {
-		await this.env.PRICE_DATA.put(KEY_MONITOR_STATE, JSON.stringify(states));
+		await this.upstashService.savePrice(KEY_MONITOR_STATE, states, 'monitor');
 	}
 
 	private async sendAlertToWechat(priceAlert: PriceAlert): Promise<void> {
@@ -123,6 +133,38 @@ export class MonitorHandler {
 		// 黄金使用特定的模板，其他商品或指数使用通用模板
 		const templateId = priceAlert.name.includes('金') ? '-SAGVkPxKhCTCZcXZavNvaBMJUy7SdMWizNl7e8Iw88' : 'Rs1nTsKg3kiUrOeMAng9UkauEL6BwyUgOHp0DqiccxM';
 		await this.wechatService.sendPriceAlert(toUserId, templateId, priceAlert);
+	}
+
+	/**
+	 * 更新并合并最新价格到 Redis (公开方法，支持外部同步)
+	 */
+	public async updateLatestPrices(newPrices: MarketPrice[]): Promise<void> {
+		// 1. 从 Redis 读取现有缓存
+		const storage = await this.upstashService.getPrice(KEY_LATEST_PRICES);
+		let priceMap: Record<string, MarketPrice> = {};
+
+		if (storage && Array.isArray(storage.data)) {
+			storage.data.forEach((p: MarketPrice) => {
+				priceMap[p.symbol] = p;
+			});
+		}
+
+		// 2. 将新获取的价格合并进去 (覆盖旧值)
+		newPrices.forEach(p => {
+			priceMap[p.symbol] = p;
+		});
+
+		// 3. 写回 Redis (永不过期或设置较长 TTL)
+		const allPrices = Object.values(priceMap);
+		await this.upstashService.savePrice(KEY_LATEST_PRICES, allPrices, 'monitor');
+	}
+
+	/**
+	 * 获取 Redis 中的最新价格列表
+	 */
+	public async getLatestPricesCached(): Promise<MarketPrice[]> {
+		const storage = await this.upstashService.getPrice(KEY_LATEST_PRICES);
+		return (storage?.data as MarketPrice[]) || [];
 	}
 }
 
@@ -143,9 +185,56 @@ export async function getMarketData(c: Context<{ Bindings: Env }>) {
 	const handler = new MonitorHandler(c.env);
 	const data = await handler.getSymbolsData(symbols);
 
+	// 同步到 Redis 缓存
+	await handler.updateLatestPrices(data);
+
 	return c.json({
 		success: true,
 		count: data.length,
 		data: symbols.length === 1 ? data[0] : data
+	});
+}
+
+/**
+ * 接口处理器：获取 Redis 中的所有最新价格快照
+ */
+export async function getAllLatestPrices(c: Context<{ Bindings: Env }>) {
+	const handler = new MonitorHandler(c.env);
+	const data = await handler.getLatestPricesCached();
+	return c.json({
+		success: true,
+		count: data.length,
+		data: data
+	});
+}
+
+/**
+ * 接口处理器：从 Redis 缓存或实时获取单个标的的行情
+ */
+export async function getSingleMarketData(c: Context<{ Bindings: Env }>) {
+	const symbol = c.req.query('symbol');
+	const force = c.req.query('force') === 'true'; // 是否强制从新浪实时获取
+	
+	if (!symbol) return c.json({ success: false, message: '缺少 symbol 参数' }, 400);
+
+	const handler = new MonitorHandler(c.env);
+	let price: MarketPrice | undefined;
+
+	if (force) {
+		// 强制实时获取
+		const data = await handler.getSymbolsData([symbol]);
+		price = data && data.length > 0 ? data[0] : undefined;
+		// 实时获取的数据也同步更新一下全量快照中的这一项（可选）
+	} else {
+		// 默认从 Redis 缓存获取
+		const allPrices = await handler.getLatestPricesCached();
+		price = allPrices.find(p => p.symbol === symbol);
+	}
+
+	return c.json({
+		success: true,
+		data: price || null,
+		isOpen: price ? isMarketOpen(price.market) : false,
+		source: force ? 'sina' : 'redis'
 	});
 }

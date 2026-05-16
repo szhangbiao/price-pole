@@ -1,58 +1,65 @@
+/**
+ * 获取当前的北京时间 Date 对象
+ */
+export function getBeijingDate(): Date {
+    const now = new Date();
+    // 强制转换为 UTC+8
+    return new Date(now.getTime() + (8 * 60 * 60 * 1000));
+}
 
 /**
- * 市场类型
+ * 判断当前是否处于开盘时间 (基于北京时间)
+ * @param marketType 市场类型: CN, HK, US, GOLD, COMMODITY
  */
-export type MarketType = 'CN' | 'HK' | 'US' | 'GOLD' | 'GLOBAL' | 'COMMODITY';
+export function isMarketOpen(marketType: string): boolean {
+    // 使用专门的北京时间转换函数
+    const now = new Date();
+    // Cloudflare Workers 运行环境通常是 UTC
+    // 我们通过 Intl 转换或偏移计算来获取北京时间数据
+    const beijingTimeStr = now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai', hour12: false });
+    const bjDate = new Date(beijingTimeStr);
+    
+    const day = bjDate.getDay(); // 0 是周日, 6 是周六
+    const hour = bjDate.getHours();
+    const min = bjDate.getMinutes();
+    const currentTime = hour * 100 + min;
 
-/**
- * 判断指定市场在当前时间是否处于交易时段（北京时间）
- * @param market 市场类型
- * @param date 可选的日期对象，默认为当前时间
- * @returns boolean
- */
-export function isMarketOpen(market: MarketType, date: Date = new Date()): boolean {
-    // 转换为北京时间 (UTC+8)
-    // Cloudflare Workers 环境下 Date 对象通常是 UTC
-    const bjTime = new Date(date.getTime() + 8 * 60 * 60 * 1000);
-
-    const day = bjTime.getUTCDay(); // 0 是周日, 6 是周六
-    const hour = bjTime.getUTCHours();
-    const minute = bjTime.getUTCMinutes();
-    const timeValue = hour * 100 + minute; // 方便比较，例如 09:30 -> 930
-
-    // 周六周日休市（黄金/原油等国际商品除外，通常 24/5，周六凌晨收盘，周一早晨开盘）
+    // 1. 周末判断 (周六周日)
     if (day === 0 || day === 6) {
-        if (market === 'GOLD' || market === 'COMMODITY') {
-            // 商品通常在周六凌晨 5-6 点收盘，周一早上 6-7 点开盘
-            if (day === 6 && timeValue < 600) return true; // 周六凌晨
-            return false;
+        // 大宗商品/黄金在周六早晨可能还开着 (收盘前)
+        if (marketType === 'GOLD' || marketType === 'COMMODITY') {
+            if (day === 6 && currentTime < 600) return true;
         }
         return false;
     }
 
-    switch (market) {
-        case 'CN':
-            // A股：9:15-11:30, 13:00-15:30 (包含盘前集合竞价和盘后作业)
-            return (timeValue >= 915 && timeValue <= 1135) || (timeValue >= 1255 && timeValue <= 1530);
-
-        case 'HK':
-            // 港股：9:15-12:10, 13:00-16:15
-            return (timeValue >= 915 && timeValue <= 1210) || (timeValue >= 1255 && timeValue <= 1615);
-
-        case 'US':
-            // 美股：21:15-05:00 (粗略包含夏令时和冬令时)
-            return (timeValue >= 2115 || timeValue <= 505);
-
+    // 2. 分市场判断
+    switch (marketType) {
+        case 'CN': // A股：9:30-11:30, 13:00-15:00
+            return (currentTime >= 930 && currentTime <= 1130) || 
+                   (currentTime >= 1300 && currentTime <= 1500);
+        
+        case 'HK': // 港股：9:30-12:00, 13:00-16:00
+            return (currentTime >= 930 && currentTime <= 1200) || 
+                   (currentTime >= 1300 && currentTime <= 1600);
+        
+        case 'US': // 美股 (北京时间)：21:30-04:00 (次日)
+            return (currentTime >= 2130 || currentTime <= 400);
+        
         case 'GOLD':
-        case 'COMMODITY':
-            // 国际商品：基本全天，除了凌晨 5:00-7:00 之间的结算时间
-            return !(timeValue >= 500 && timeValue <= 700);
-
-        case 'GLOBAL':
-            // 全球指数（主要针对日韩）：08:00 - 15:00 (北京时间)
-            return (timeValue >= 800 && timeValue <= 1500);
-
+        case 'COMMODITY': // 国际期货：通常周一 06:00 到周六 06:00 连续
+            if (day === 1 && currentTime < 600) return false; // 周一早上6点开盘
+            return true;
+        
         default:
-            return false;
+            return true;
     }
+}
+
+/**
+ * 判断是否所有市场都已休市 (用于优化 Cron)
+ */
+export function isAnyMarketOpen(): boolean {
+    const markets = ['CN', 'HK', 'US', 'GOLD'];
+    return markets.some(m => isMarketOpen(m));
 }

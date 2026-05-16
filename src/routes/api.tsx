@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { sendWxTemplateMsgToUser } from '../handler/wechatHandler';
 import { getPriceData, savePriceData, clearCache } from '../handler/priceHandler';
 import { sendEmail } from '../handler/emailHandler';
-import { getMarketData, MonitorHandler } from '../handler/monitorHandler';
+import { getMarketData, MonitorHandler, getSingleMarketData } from '../handler/monitorHandler';
 
 const api = new Hono<{ Bindings: Env }>();
 
@@ -13,6 +13,9 @@ api.delete('/clearCache', clearCache);
 
 // 市场行情数据查询接口
 api.get('/market/prices', getMarketData);
+
+// 获取单个标的实时行情 (用于详情页 1s 轮询)
+api.get('/market-data', getSingleMarketData);
 
 // 监控任务手动触发接口 (用于本地测试)
 api.get('/monitor/run', async (c) => {

@@ -11,6 +11,7 @@ const Layout: FC<LayoutProps> = ({ children, currentPath = '/' }) => {
   // 根据当前路径设置导航链接的active状态
   const navLinks = [
     { href: "/", label: "首页", active: currentPath === '/' },
+    { href: "/monitor", label: "监控", active: currentPath === '/monitor' },
     { href: "/about", label: "关于", active: currentPath === '/about' }
   ];
 
@@ -28,6 +29,7 @@ const Layout: FC<LayoutProps> = ({ children, currentPath = '/' }) => {
         <link rel="stylesheet" href="/pages.css" />
         <link rel="stylesheet" href="/components.css" />
         <link rel="stylesheet" href="/responsive.css" />
+        <link rel="stylesheet" href="/monitor.css" />
       </head>
       <body>
         {/* 防闪烁脚本移到body开始处 */}

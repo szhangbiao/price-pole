@@ -1,8 +1,10 @@
 import { Hono } from 'hono'
 import Layout from '../components/layout/Layout'
 import Home from '../components/pages/Home'
-import { About } from '../components'
+import { About, Monitor, MonitorDetail } from '../components'
 import { PriceHandler } from '../handler/priceHandler'
+import { MonitorHandler } from '../handler/monitorHandler'
+import { isMarketOpen } from '../utils/marketUtils'
 
 const router = new Hono<{ Bindings: Env }>()
 
@@ -31,5 +33,31 @@ router.get('/', async (c) => {
   }
 })
 router.get('/about', (c) => c.html(<Layout currentPath="/about"><About /></Layout>))
+router.get('/monitor', async (c) => {
+  const monitorHandler = new MonitorHandler(c.env);
+  const latestPrices = await monitorHandler.getLatestPricesCached();
+
+  return c.html(
+    <Layout currentPath="/monitor">
+      <Monitor data={latestPrices} />
+    </Layout>
+  )
+})
+
+router.get('/monitor/:symbol', async (c) => {
+  const symbol = c.req.param('symbol');
+  const monitorHandler = new MonitorHandler(c.env);
+  const data = await monitorHandler.getSymbolsData([symbol]);
+
+  if (!data || data.length === 0) {
+    return c.text('未找到该标的数据', 404);
+  }
+
+  return c.html(
+    <Layout currentPath="/monitor">
+      <MonitorDetail symbol={symbol} initialData={data[0]} />
+    </Layout>
+  )
+})
 
 export default router

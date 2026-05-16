@@ -1,0 +1,523 @@
+/* 监控中心页面样式 */
+.monitor-container {
+    padding: 2rem 1rem;
+    background-color: #f9fafb;
+    min-height: 100vh;
+    transition: background-color 0.3s ease;
+}
+
+/* 暗色模式适配 */
+body.dark-theme .monitor-container {
+    background-color: #121212;
+}
+
+@media (min-width: 768px) {
+    .monitor-container {
+        padding: 2rem;
+    }
+}
+
+.monitor-wrapper {
+    max-width: 80rem;
+    margin: 0 auto;
+}
+
+.monitor-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.monitor-title h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+body.dark-theme .monitor-title h1 {
+    color: #ffffff;
+}
+
+.monitor-title p {
+    color: #6b7280;
+}
+
+body.dark-theme .monitor-title p {
+    color: #9ca3af;
+}
+
+.monitor-info {
+    text-align: right;
+    font-size: 0.875rem;
+}
+
+.monitor-global-time {
+    color: #3b82f6;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+body.dark-theme .monitor-global-time {
+    color: #60a5fa;
+}
+
+.monitor-source-tag {
+    color: #9ca3af;
+    font-size: 0.75rem;
+}
+
+/* 市场区域 */
+.monitor-market-section {
+    margin-bottom: 2.5rem;
+}
+
+.monitor-market-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.monitor-market-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    border-left: 4px solid #3b82f6;
+    padding-left: 0.75rem;
+}
+
+body.dark-theme .monitor-market-header h2 {
+    color: #e5e7eb;
+}
+
+.monitor-market-count {
+    margin-left: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    border-radius: 9999px;
+    font-weight: 500;
+}
+
+body.dark-theme .monitor-market-count {
+    background-color: #1e3a8a;
+    color: #bfdbfe;
+}
+
+/* 价格卡片网格 */
+.monitor-price-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .monitor-price-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .monitor-price-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1280px) {
+    .monitor-price-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* 价格卡片 */
+.monitor-price-item-card {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f3f4f6;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+body.dark-theme .monitor-price-item-card {
+    background-color: #1e1e1e;
+    border-color: #333333;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.monitor-price-item-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+body.dark-theme .monitor-price-item-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    border-color: #444444;
+}
+
+.monitor-price-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.monitor-price-item-name {
+    font-weight: 700;
+    color: #1f2937;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 0.5rem;
+}
+
+body.dark-theme .monitor-price-item-name {
+    color: #f3f4f6;
+}
+
+.monitor-price-item-symbol {
+    font-size: 10px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    font-family: monospace;
+}
+
+.monitor-price-item-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.monitor-price-item-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-family: monospace;
+    color: #111827;
+}
+
+body.dark-theme .monitor-price-item-value {
+    color: #ffffff;
+}
+
+.monitor-price-item-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.monitor-price-up {
+    color: #ef4444;
+}
+
+.monitor-price-down {
+    color: #22c55e;
+}
+
+.monitor-price-change {
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.monitor-price-percent {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.monitor-price-item-footer {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f9fafb;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    font-size: 11px;
+    color: #6b7280;
+}
+
+body.dark-theme .monitor-price-item-footer {
+    border-top-color: #333333;
+    color: #9ca3af;
+}
+
+.monitor-footer-item-right {
+    text-align: right;
+}
+
+.monitor-footer-label {
+    color: #9ca3af;
+    margin-right: 0.25rem;
+}
+
+.monitor-footer-time {
+    color: #d1d5db;
+    font-size: 10px;
+}
+
+body.dark-theme .monitor-footer-time {
+    color: #4b5563;
+}
+
+/* 空状态 */
+.monitor-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 0;
+    background-color: #ffffff;
+    border-radius: 1.5rem;
+    margin-top: 2.5rem;
+}
+
+body.dark-theme .monitor-empty-state {
+    background-color: #1e1e1e;
+}
+
+.monitor-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.monitor-empty-text {
+    color: #9ca3af;
+}
+
+/* 监控详情页 */
+.monitor-detail-container {
+    padding: 2rem 1rem;
+    min-height: 100vh;
+    background-color: #f8fafc;
+}
+
+body.dark-theme .monitor-detail-container {
+    background-color: #0f172a;
+}
+
+.monitor-detail-wrapper {
+    max-width: 48rem;
+    margin: 0 auto;
+}
+
+.monitor-detail-nav {
+    margin-bottom: 1.5rem;
+}
+
+.back-link {
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: #3b82f6;
+}
+
+.monitor-detail-card {
+    background: #ffffff;
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+}
+
+body.dark-theme .monitor-detail-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.detail-name-box h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0;
+    color: #1e293b;
+}
+
+body.dark-theme .detail-name-box h1 {
+    color: #f1f5f9;
+}
+
+.detail-symbol {
+    font-family: monospace;
+    color: #94a3b8;
+    font-size: 1rem;
+}
+
+.detail-status {
+    font-size: 0.75rem;
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #ecfdf5;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+}
+
+body.dark-theme .detail-status {
+    background: #064e3b;
+    color: #34d399;
+}
+
+.detail-status.is-closed {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+body.dark-theme .detail-status.is-closed {
+    background: #334155;
+    color: #94a3b8;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.detail-price-section {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.detail-actions {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.refresh-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+}
+
+.refresh-btn:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+}
+
+.refresh-btn:active {
+    transform: translateY(0);
+}
+
+.refresh-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+body.dark-theme .refresh-btn {
+    background: #2563eb;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme .refresh-btn:hover {
+    background: #1d4ed8;
+}
+
+.detail-current-price {
+    font-size: 5rem;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -2px;
+    color: #0f172a;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+body.dark-theme .detail-current-price {
+    color: #f8fafc;
+}
+
+.detail-change-box {
+    display: inline-flex;
+    gap: 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-top: 1rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 2rem;
+}
+
+body.dark-theme .detail-grid {
+    border-color: #334155;
+}
+
+.detail-info-item {
+    display: flex;
+    justify-content: space-between;
+}
+
+.detail-info-item .label {
+    color: #94a3b8;
+}
+
+.detail-info-item .value {
+    font-weight: 600;
+    color: #475569;
+}
+
+body.dark-theme .detail-info-item .value {
+    color: #cbd5e1;
+}
+
+.detail-update-time {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.monitor-detail-tips {
+    margin-top: 1.5rem;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.875rem;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+    .detail-current-price {
+        font-size: 3.5rem;
+    }
+    .monitor-detail-card {
+        padding: 1.5rem;
+    }
+}

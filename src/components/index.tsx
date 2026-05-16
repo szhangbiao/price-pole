@@ -1,3 +1,5 @@
 export { default as Layout } from './layout/Layout'
 export { default as Home } from './pages/Home'
 export { default as About } from './pages/About'
+export { default as Monitor } from './pages/Monitor'
+export { default as MonitorDetail } from './pages/MonitorDetail'
