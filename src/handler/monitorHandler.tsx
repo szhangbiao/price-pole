@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { SinaService } from '../service/sinaService';
 import { isMarketOpen } from '../utils/marketUtils';
 import { MarketPrice } from '../types/monitor';
-import { H_SHARE_INDEX, US_STOCK_INDEX, GOLD_INDEX, GLOBAL_INDEX } from '../config/markets';
+import { H_SHARE_INDEX, US_STOCK_INDEX, COMMODITY_INDEX, GLOBAL_INDEX } from '../config/markets';
 import { WechatSendService } from '../service/wechatSend';
 import { PriceAlert } from '../types/price';
 
@@ -27,7 +27,7 @@ export class MonitorHandler {
 		const allIndices = [
 			...H_SHARE_INDEX,
 			...US_STOCK_INDEX,
-			...GOLD_INDEX,
+			...COMMODITY_INDEX,
 			...GLOBAL_INDEX
 		];
 		const symbols = Array.from(new Set(allIndices.map(idx => idx.code)));
@@ -41,12 +41,20 @@ export class MonitorHandler {
 
 		for (const price of prices) {
 			if (!isMarketOpen(price.market)) continue;
-			if (price.market === 'GOLD') {
-				// --- 黄金监控逻辑：实时极值突破 ---
-				const highKey = `gold_high_${price.symbol}_${today}`;
-				const lowKey = `gold_low_${price.symbol}_${today}`;
+
+			if (price.market === 'GOLD' || price.market === 'COMMODITY') {
+				// --- 商品监控逻辑：实时极值突破 ---
+				const stateKey = price.market.toLowerCase();
+				const highKey = `${stateKey}_high_${price.symbol}_${today}`;
+				const lowKey = `${stateKey}_low_${price.symbol}_${today}`;
 				const lastHigh = states[highKey] || 0;
 				const lastLow = states[lowKey] || 0;
+
+				const isGold = price.name.includes('黄金') || price.name.includes('金');
+				const isSilver = price.name.includes('白银') || price.name.includes('银');
+				const isOil = price.name.includes('原油') || price.name.includes('油');
+				const assetName = isGold ? '黄金' : (isSilver ? '白银' : (isOil ? '原油' : '商品'));
+
 				// 检查新高 (只要有突破就立即触发，无冷却限制)
 				if (price.high > 0 && price.high > lastHigh) {
 					if (lastHigh > 0) {
@@ -54,7 +62,7 @@ export class MonitorHandler {
 							name: price.name,
 							price: `${price.current} (${price.percent}%)`,
 							detail: `突破今日前高: ${price.high} (前高: ${lastHigh})`,
-							remark: '黄金价格突破今日极值，请留意行情变动。'
+							remark: `${assetName}价格突破今日极值，请留意行情变动。`
 						});
 					}
 					states[highKey] = price.high;
@@ -66,7 +74,7 @@ export class MonitorHandler {
 							name: price.name,
 							price: `${price.current} (${price.percent}%)`,
 							detail: `跌破今日前低: ${price.low} (前低: ${lastLow})`,
-							remark: '黄金价格跌破今日极值，请留意行情变动。'
+							remark: `${assetName}价格跌破今日极值，请留意行情变动。`
 						});
 					}
 					states[lowKey] = price.low;
@@ -112,7 +120,8 @@ export class MonitorHandler {
 
 	private async sendAlertToWechat(priceAlert: PriceAlert): Promise<void> {
 		const toUserId = this.env.WX_TO_USERID;
-		const templateId = priceAlert.name.includes('伦敦金') ? '-SAGVkPxKhCTCZcXZavNvaBMJUy7SdMWizNl7e8Iw88' : 'Rs1nTsKg3kiUrOeMAng9UkauEL6BwyUgOHp0DqiccxM';
+		// 黄金使用特定的模板，其他商品或指数使用通用模板
+		const templateId = priceAlert.name.includes('金') ? '-SAGVkPxKhCTCZcXZavNvaBMJUy7SdMWizNl7e8Iw88' : 'Rs1nTsKg3kiUrOeMAng9UkauEL6BwyUgOHp0DqiccxM';
 		await this.wechatService.sendPriceAlert(toUserId, templateId, priceAlert);
 	}
 }

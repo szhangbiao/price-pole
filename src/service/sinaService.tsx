@@ -109,7 +109,7 @@ export class SinaService {
 
                 price = {
                     symbol: code,
-                    name: dataArray[13] || '伦敦金',
+                    name: dataArray[13] || (code === 'hf_XAU' ? '伦敦金' : code),
                     current: current,
                     change: change,
                     percent: percent,
@@ -121,7 +121,7 @@ export class SinaService {
                     amount: 0,
                     updateTime: `${dataArray[12]} ${dataArray[6]}`,
                     fetchTime: nowIso,
-                    market: 'GOLD'
+                    market: 'COMMODITY'
                 };
             }
             // 4. 国内 A股/指数 完整版 (sh..., sz...)
