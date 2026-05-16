@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { SinaService } from '../service/sinaService';
 import { isMarketOpen, getBeijingDate } from '../utils/marketUtils';
 import { MarketPrice } from '../types/monitor';
-import { H_SHARE_INDEX, US_STOCK_INDEX, COMMODITY_INDEX, GLOBAL_INDEX } from '../config/markets';
+import { H_SHARE_INDEX, US_STOCK_INDEX, METAL_INDEX, ENERGY_INDEX, GLOBAL_INDEX } from '../config/markets';
 import { WechatSendService } from '../service/wechatSend';
 import { PriceAlert } from '../types/price';
 import { UpstashService } from '../service/upstashService';
@@ -34,7 +34,8 @@ export class MonitorHandler {
 		const allIndices = [
 			...H_SHARE_INDEX,
 			...US_STOCK_INDEX,
-			...COMMODITY_INDEX,
+			...METAL_INDEX,
+			...ENERGY_INDEX,
 			...GLOBAL_INDEX
 		];
 		const symbols = Array.from(new Set(allIndices.map(idx => idx.code)));
@@ -53,7 +54,7 @@ export class MonitorHandler {
 		for (const price of prices) {
 			if (!isMarketOpen(price.market)) continue;
 
-			if (price.market === 'GOLD' || price.market === 'COMMODITY') {
+			if (price.market === 'METAL' || price.market === 'ENERGY') {
 				// --- 商品监控逻辑：实时极值突破 ---
 				const stateKey = price.market.toLowerCase();
 				const highKey = `${stateKey}_high_${price.symbol}_${today}`;

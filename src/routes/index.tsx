@@ -4,7 +4,6 @@ import Home from '../components/pages/Home'
 import { About, Monitor, MonitorDetail } from '../components'
 import { PriceHandler } from '../handler/priceHandler'
 import { MonitorHandler } from '../handler/monitorHandler'
-import { isMarketOpen } from '../utils/marketUtils'
 
 const router = new Hono<{ Bindings: Env }>()
 

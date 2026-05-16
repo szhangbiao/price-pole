@@ -24,8 +24,8 @@ export interface MarketPrice {
     amount: number;      // 成交额
     updateTime: string;  // 市场更新时间
     fetchTime: string;   // 系统抓取时间
-    market: 'CN' | 'HK' | 'US' | 'GOLD' | 'GLOBAL' | 'COMMODITY';
-    
+    market: 'CN' | 'HK' | 'US' | 'METAL' | 'ENERGY' | 'GLOBAL';
+
     // 扩展字段，用于存储不同市场的特有数据
     extra?: {
         high52w?: number;  // 52周最高

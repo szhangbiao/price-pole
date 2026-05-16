@@ -107,6 +107,7 @@ export class SinaService {
                 const change = Number((current - lastClose).toFixed(2));
                 const percent = lastClose > 0 ? Number(((change / lastClose) * 100).toFixed(2)) : 0;
 
+                const isMetal = code.includes('XAU') || code.includes('XAG');
                 price = {
                     symbol: code,
                     name: dataArray[13] || (code === 'hf_XAU' ? '伦敦金' : code),
@@ -121,7 +122,7 @@ export class SinaService {
                     amount: 0,
                     updateTime: `${dataArray[12]} ${dataArray[6]}`,
                     fetchTime: nowIso,
-                    market: 'COMMODITY'
+                    market: isMetal ? 'METAL' : 'ENERGY'
                 };
             }
             // 4. 国内 A股/指数 完整版 (sh..., sz...)

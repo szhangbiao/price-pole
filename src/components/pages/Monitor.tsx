@@ -5,7 +5,8 @@ const MARKET_NAMES: Record<string, string> = {
     'CN': '中国市场',
     'HK': '香港市场',
     'US': '美国市场',
-    'COMMODITY': '大宗商品',
+    'METAL': '贵金属',
+    'ENERGY': '能源/大宗',
     'GLOBAL': '全球指数'
 }
 
@@ -19,12 +20,12 @@ const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
     }, {} as Record<string, MarketPrice[]>)
 
     // 获取数据中的最新更新时间作为全局参考
-    const latestUpdate = data.length > 0 
+    const latestUpdate = data.length > 0
         ? data.reduce((latest, p) => p.updateTime > latest ? p.updateTime : latest, data[0].updateTime)
         : null;
 
-    // 排序：CN -> HK -> US -> COMMODITY -> GLOBAL
-    const sortedMarkets = ['CN', 'HK', 'US', 'COMMODITY', 'GLOBAL']
+    // 排序：CN -> HK -> US -> METAL -> ENERGY -> GLOBAL
+    const sortedMarkets = ['CN', 'HK', 'US', 'METAL', 'ENERGY', 'GLOBAL']
 
     return (
         <div class="monitor-container">
@@ -54,8 +55,8 @@ const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
 
                                 <div class="monitor-price-grid">
                                     {prices.map(price => (
-                                        <a 
-                                            key={price.symbol} 
+                                        <a
+                                            key={price.symbol}
                                             href={`/monitor/${price.symbol}`}
                                             class="monitor-price-item-card"
                                             style="text-decoration: none; display: block;"
@@ -68,7 +69,7 @@ const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
                                                     {price.symbol.replace('rt_hk', '').replace('gb_', '').replace('hf_', '')}
                                                 </span>
                                             </div>
-                                            
+
                                             <div class="monitor-price-item-main">
                                                 <span class="monitor-price-item-value">
                                                     {price.current.toLocaleString(undefined, { minimumFractionDigits: 2 })}

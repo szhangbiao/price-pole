@@ -24,9 +24,14 @@ export const US_STOCK_INDEX = [
     { code: "gb_inx", name: "标普500指数" }
 ];
 
-export const COMMODITY_INDEX = [
+// 贵金属 (Metal)
+export const METAL_INDEX = [
     { code: "hf_XAU", name: "伦敦金" },
-    { code: "hf_XAG", name: "伦敦银" },
+    { code: "hf_XAG", name: "伦敦银" }
+];
+
+// 能源/大宗商品 (Energy)
+export const ENERGY_INDEX = [
     { code: "hf_CL", name: "WTI原油" },
     { code: "hf_OIL", name: "布伦特原油" }
 ];

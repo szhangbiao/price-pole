@@ -81,12 +81,12 @@
         /**
          * 客户端开盘时间判断逻辑 (基于北京时间)
          */
-        function checkMarketOpen(marketType) {
+        function checkMarketOpen(marketType, symbol = '') {
             const { day, currentTime } = getBeijingInfo();
 
             // 周末判断
             if (day === 0 || day === 6) {
-                if (marketType === 'GOLD' || marketType === 'COMMODITY') {
+                if (marketType === 'METAL' || marketType === 'ENERGY') {
                     if (day === 6 && currentTime < 600) return true;
                 }
                 return false;
@@ -99,10 +99,13 @@
                     return (currentTime >= 930 && currentTime <= 1200) || (currentTime >= 1300 && currentTime <= 1600);
                 case 'US':
                     return (currentTime >= 2130 || currentTime <= 400);
-                case 'GOLD':
-                case 'COMMODITY':
+                case 'METAL':
+                case 'ENERGY':
+                    // 国际期货：周一凌晨 06:00 开盘
                     if (day === 1 && currentTime < 600) return false;
                     return true;
+                case 'GLOBAL':
+                    return (currentTime >= 800 && currentTime <= 1430);
                 default:
                     return true;
             }
@@ -164,7 +167,7 @@
         }
 
         function scheduler() {
-            const isOpen = checkMarketOpen(market);
+            const isOpen = checkMarketOpen(market, symbol);
             
             if (isOpen) {
                 if (actionsBox) actionsBox.style.display = 'block';

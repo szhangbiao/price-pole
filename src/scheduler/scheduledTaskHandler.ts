@@ -37,9 +37,7 @@ function shouldSendWxMessage(scheduledTime: number): boolean {
  */
 export async function handleScheduledTask(event: ScheduledEvent, env: Env): Promise<void> {
     const scheduledDate = new Date(event.scheduledTime);
-    console.log('定时任务触发，时间:', scheduledDate.toISOString());
-
-    const isCNMarketOpen = isMarketOpen('CN', scheduledDate);
+    const isCNMarketOpen = isMarketOpen('CN');
     const isHalfHourMark = scheduledDate.getUTCMinutes() % 30 === 0;
     const isNotificationTime = shouldSendEmail(event.scheduledTime) || shouldSendWxMessage(event.scheduledTime);
 
@@ -68,7 +66,7 @@ export async function handleScheduledTask(event: ScheduledEvent, env: Env): Prom
 
     // 3. 执行新业务监控逻辑 (独立于旧业务)
     // 只有在至少有一个市场开盘时才运行监控，以节省 Redis 资源
-    if (isAnyMarketOpen(scheduledDate)) {
+    if (isAnyMarketOpen()) {
         try {
             const monitorHandler = new MonitorHandler(env);
             await monitorHandler.runMonitor();
