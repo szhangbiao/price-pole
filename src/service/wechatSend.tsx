@@ -64,7 +64,7 @@ export class WechatSendService {
         }
     }
 
-    public async sendPriceAlert(toUserId: string, templateId: string, priceAlert: PriceAlert) {
+    public async sendPriceAlert(toUserId: string, templateId: string, priceAlert: PriceAlert, url: string) {
         const payload = {
             toUserId: toUserId,
             templateId: templateId,
@@ -74,7 +74,7 @@ export class WechatSendService {
                 keyword3: { value: priceAlert.detail },
                 remark: { value: priceAlert.remark }
             },
-            url: "https://price-pole.szhangbiao.cn"
+            url: url
         };
         try {
             const response = await fetch(this.WX_SEND_API, {

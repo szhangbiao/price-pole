@@ -74,7 +74,7 @@ export class MonitorHandler {
 							price: `${price.current} (${price.percent}%)`,
 							detail: `突破今日前高: ${price.high} (前高: ${lastHigh})`,
 							remark: `${assetName}价格突破今日极值，请留意行情变动。`
-						});
+						}, price.symbol);
 					}
 					states[highKey] = price.high;
 				}
@@ -86,7 +86,7 @@ export class MonitorHandler {
 							price: `${price.current} (${price.percent}%)`,
 							detail: `跌破今日前低: ${price.low} (前低: ${lastLow})`,
 							remark: `${assetName}价格跌破今日极值，请留意行情变动。`
-						});
+						}, price.symbol);
 					}
 					states[lowKey] = price.low;
 				}
@@ -104,7 +104,7 @@ export class MonitorHandler {
 						price: `${price.current} (${price.percent}%)`,
 						detail: `涨跌幅到: ${currentLevel}% (当前: ${currentPercent}%)`,
 						remark: '市场指数大幅波动，请留意风险。'
-					});
+					}, price.symbol);
 					states[levelKey] = currentLevel;
 				}
 			}
@@ -129,11 +129,15 @@ export class MonitorHandler {
 		await this.upstashService.savePrice(KEY_MONITOR_STATE, states, 'monitor');
 	}
 
-	private async sendAlertToWechat(priceAlert: PriceAlert): Promise<void> {
+	private async sendAlertToWechat(priceAlert: PriceAlert, symbol: string): Promise<void> {
 		const toUserId = this.env.WX_TO_USERID;
 		// 黄金使用特定的模板，其他商品或指数使用通用模板
 		const templateId = priceAlert.name.includes('金') ? '-SAGVkPxKhCTCZcXZavNvaBMJUy7SdMWizNl7e8Iw88' : 'Rs1nTsKg3kiUrOeMAng9UkauEL6BwyUgOHp0DqiccxM';
-		await this.wechatService.sendPriceAlert(toUserId, templateId, priceAlert);
+
+		// 动态构造详情页 URL (路径式路由)
+		const detailUrl = `https://price-pole.szhangbiao.cn/monitor/${symbol}`;
+
+		await this.wechatService.sendPriceAlert(toUserId, templateId, priceAlert, detailUrl);
 	}
 
 	/**
