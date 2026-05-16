@@ -106,7 +106,7 @@ const MonitorDetail: FC<MonitorDetailProps> = ({ symbol, initialData }) => {
                     </div>
 
                     <div class="detail-update-time">
-                        最后更新于: <span id="update-time">{initialData.updateTime}</span>
+                        最后更新于: <span id="update-time">{initialData.updateTime}</span> (北京时间)
                     </div>
                 </div>
 

@@ -236,10 +236,29 @@ body.dark-theme .feature-item {
   border-color: #404040;
 }
 
+.feature-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.feature-icon {
+  font-size: 1.5rem;
+  color: #007bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.dark-theme .feature-icon {
+  color: #64b5f6;
+}
+
 .feature-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 10px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0;
   color: #333;
   transition: color 0.3s ease;
 }

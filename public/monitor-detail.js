@@ -35,33 +35,47 @@
         let pollInterval = null;
 
         /**
-         * 核心：强制获取北京时间 (UTC+8)
+         * 健壮的北京时间获取逻辑
          */
         function getBeijingInfo() {
             const now = new Date();
-            // 使用 Intl.DateTimeFormat 获取上海时区的时间部分
+            // 使用 Intl 提取精确的分量，避免字符串解析兼容性问题
             const options = {
                 timeZone: 'Asia/Shanghai',
                 hour12: false,
-                weekday: 'numeric',
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
                 hour: 'numeric',
-                minute: 'numeric'
+                minute: 'numeric',
+                weekday: 'narrow' // 用于辅助某些逻辑，主要还是靠 Date 对象
             };
-            const formatter = new Intl.DateTimeFormat('en-US', options);
-            const parts = formatter.formatToParts(now);
             
-            const info = {};
-            parts.forEach(p => info[p.type] = p.value);
-            
-            // 注意：Intl 的 weekday 1是周一，7是周日。Date.getDay() 0是周日。
-            // 简单处理：直接用 toLocaleString 解析
-            const bjStr = now.toLocaleString('en-US', { timeZone: 'Asia/Shanghai', hour12: false });
-            const bjDate = new Date(bjStr);
-            
-            return {
-                day: bjDate.getDay(),
-                currentTime: bjDate.getHours() * 100 + bjDate.getMinutes()
-            };
+            try {
+                const formatter = new Intl.DateTimeFormat('en-US', options);
+                const parts = formatter.formatToParts(now);
+                const info = {};
+                parts.forEach(p => info[p.type] = p.value);
+
+                // Date 对象在 Asia/Shanghai 下的真实星期
+                // 解决：通过 offset 重新计算一个准确的 Date 对象
+                const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                const bjDate = new Date(utc + (3600000 * 8));
+
+                return {
+                    day: bjDate.getDay(),
+                    hour: parseInt(info.hour),
+                    min: parseInt(info.minute),
+                    currentTime: parseInt(info.hour) * 100 + parseInt(info.minute)
+                };
+            } catch (e) {
+                console.error('Time parsing error:', e);
+                // 降级方案：直接使用本地时间
+                return {
+                    day: now.getDay(),
+                    currentTime: now.getHours() * 100 + now.getMinutes()
+                };
+            }
         }
 
         /**
@@ -70,6 +84,7 @@
         function checkMarketOpen(marketType) {
             const { day, currentTime } = getBeijingInfo();
 
+            // 周末判断
             if (day === 0 || day === 6) {
                 if (marketType === 'GOLD' || marketType === 'COMMODITY') {
                     if (day === 6 && currentTime < 600) return true;

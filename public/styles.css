@@ -380,9 +380,9 @@ body.dark-theme .time-value {
   background: white;
   color: #333;
   padding: 40px;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #e5e5e5;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-top: 30px;
   transition: all 0.3s ease;
 }
@@ -392,12 +392,16 @@ body.dark-theme .about-content {
   background: #1e1e1e;
   color: #e0e0e0;
   border-color: #333;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.about-section {
+  margin-bottom: 40px;
 }
 
 .about-title {
   font-size: 1.8rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 20px;
   color: #333;
   transition: color 0.3s ease;
@@ -410,7 +414,7 @@ body.dark-theme .about-title {
 
 .about-description {
   font-size: 1.1rem;
-  line-height: 1.6;
+  line-height: 1.7;
   color: #555;
   margin-bottom: 30px;
   transition: color 0.3s ease;
@@ -430,8 +434,8 @@ body.dark-theme .about-description {
 
 .feature-item {
   background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 24px;
   border: 1px solid #e9ecef;
   transition: all 0.3s ease;
 }
@@ -442,10 +446,29 @@ body.dark-theme .feature-item {
   border-color: #404040;
 }
 
+.feature-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.feature-icon {
+  font-size: 1.5rem;
+  color: #007bff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.dark-theme .feature-icon {
+  color: #64b5f6;
+}
+
 .feature-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 10px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0;
   color: #333;
   transition: color 0.3s ease;
 }
@@ -458,13 +481,46 @@ body.dark-theme .feature-title {
 .feature-description {
   font-size: 1rem;
   color: #666;
-  line-height: 1.5;
+  line-height: 1.6;
   transition: color 0.3s ease;
 }
 
 /* 暗色主题功能描述 */
 body.dark-theme .feature-description {
   color: #b0b0b0;
+}
+
+.tech-stack-section {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid #eee;
+}
+
+body.dark-theme .tech-stack-section {
+  border-top-color: #333;
+}
+
+.tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.tech-tag {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+}
+
+body.dark-theme .tech-tag {
+  background: #334155;
+  color: #cbd5e1;
+  border-color: #475569;
 }
 
 /* ===== 卡片样式 ===== */

@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import { SinaService } from '../service/sinaService';
-import { isMarketOpen } from '../utils/marketUtils';
+import { isMarketOpen, getBeijingDate } from '../utils/marketUtils';
 import { MarketPrice } from '../types/monitor';
 import { H_SHARE_INDEX, US_STOCK_INDEX, COMMODITY_INDEX, GLOBAL_INDEX } from '../config/markets';
 import { WechatSendService } from '../service/wechatSend';
@@ -47,7 +47,8 @@ export class MonitorHandler {
 
 		// 4. 获取极值监控所需的持久化状态
 		const states = await this.getStates();
-		const today = new Date().toISOString().split('T')[0];
+		const bjDate = getBeijingDate();
+		const today = bjDate.toISOString().split('T')[0];
 
 		for (const price of prices) {
 			if (!isMarketOpen(price.market)) continue;
@@ -214,7 +215,7 @@ export async function getAllLatestPrices(c: Context<{ Bindings: Env }>) {
 export async function getSingleMarketData(c: Context<{ Bindings: Env }>) {
 	const symbol = c.req.query('symbol');
 	const force = c.req.query('force') === 'true'; // 是否强制从新浪实时获取
-	
+
 	if (!symbol) return c.json({ success: false, message: '缺少 symbol 参数' }, 400);
 
 	const handler = new MonitorHandler(c.env);

@@ -24,11 +24,11 @@ const ExchangeRateCard: FC<ExchangeRateCardProps> = ({ exchangeRate }) => {
         <div class="exchange-details">
           <div class="detail-item">
             <span class="label">基础货币:</span>
-            <span class="value">{exchangeRate.currencyF} ({exchangeRate.currencyF_Name})</span>
+            <span class="value">{exchangeRate.currencyF}</span>
           </div>
           <div class="detail-item">
             <span class="label">目标货币:</span>
-            <span class="value">{exchangeRate.currencyT} ({exchangeRate.currencyT_Name})</span>
+            <span class="value">{exchangeRate.currencyT}</span>
           </div>
           <div class="detail-item">
             <span class="label">汇率:</span>
