@@ -46,11 +46,14 @@ const MonitorDetail: FC<MonitorDetailProps> = ({ symbol, initialData }) => {
 
                     <div class="detail-price-section">
                         <div class="detail-current-price" id="current-price">
-                            {initialData.current.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {initialData.current.toLocaleString(undefined, { 
+                                minimumFractionDigits: initialData.market === 'FOREX' ? 4 : 2,
+                                maximumFractionDigits: initialData.market === 'FOREX' ? 4 : 2
+                            })}
                         </div>
                         <div class={`detail-change-box ${initialData.change >= 0 ? 'price-up' : 'price-down'}`} id="change-box">
                             <span class="detail-change" id="price-change">
-                                {initialData.change >= 0 ? '+' : ''}{initialData.change.toFixed(2)}
+                                {initialData.change >= 0 ? '+' : ''}{initialData.change.toFixed(initialData.market === 'FOREX' ? 4 : 2)}
                             </span>
                             <span class="detail-percent" id="price-percent">
                                 {initialData.change >= 0 ? '+' : ''}{initialData.percent.toFixed(2)}%

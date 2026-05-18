@@ -1,7 +1,7 @@
 /**
  * 监控详情页 - 客户端调度逻辑 (时区修正版)
  */
-(function() {
+(function () {
     "use strict";
 
     function initMonitorDetail() {
@@ -25,7 +25,7 @@
         const high52El = document.getElementById('price-high52');
         const low52El = document.getElementById('price-low52');
         const timeEl = document.getElementById('update-time');
-        
+
         const refreshBtn = document.getElementById('refresh-btn');
         const actionsBox = document.getElementById('detail-actions');
         const marketStatus = document.getElementById('market-status');
@@ -50,7 +50,7 @@
                 minute: 'numeric',
                 weekday: 'narrow' // 用于辅助某些逻辑，主要还是靠 Date 对象
             };
-            
+
             try {
                 const formatter = new Intl.DateTimeFormat('en-US', options);
                 const parts = formatter.formatToParts(now);
@@ -86,7 +86,7 @@
 
             // 周末判断
             if (day === 0 || day === 6) {
-                if (marketType === 'METAL' || marketType === 'ENERGY') {
+                if (marketType === 'METAL' || marketType === 'ENERGY' || marketType === 'FOREX') {
                     if (day === 6 && currentTime < 600) return true;
                 }
                 return false;
@@ -101,7 +101,8 @@
                     return (currentTime >= 2130 || currentTime <= 400);
                 case 'METAL':
                 case 'ENERGY':
-                    // 国际期货：周一凌晨 06:00 开盘
+                case 'FOREX':
+                    // 国际期货及外汇：周一凌晨 06:00 开盘
                     if (day === 1 && currentTime < 600) return false;
                     return true;
                 case 'GLOBAL':
@@ -128,15 +129,18 @@
                 const url = `/api/market-data?symbol=${symbol}${force ? '&force=true' : ''}`;
                 const res = await fetch(url);
                 const result = await res.json();
-                
+
                 if (result.success && result.data) {
                     const data = result.data;
-                    priceEl.innerText = data.current.toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    priceEl.innerText = data.current.toLocaleString(undefined, {
+                        minimumFractionDigits: market === 'FOREX' ? 4 : 2,
+                        maximumFractionDigits: market === 'FOREX' ? 4 : 2
+                    });
                     const isUp = data.change >= 0;
                     changeBox.className = 'detail-change-box ' + (isUp ? 'price-up' : 'price-down');
-                    changeEl.innerText = (isUp ? '+' : '') + data.change.toFixed(2);
+                    changeEl.innerText = (isUp ? '+' : '') + data.change.toFixed(market === 'FOREX' ? 4 : 2);
                     percentEl.innerText = (isUp ? '+' : '') + data.percent.toFixed(2) + '%';
-                    
+
                     if (highEl) highEl.innerText = data.high;
                     if (lowEl) lowEl.innerText = data.low;
                     if (openEl) openEl.innerText = data.open;
@@ -168,7 +172,7 @@
 
         function scheduler() {
             const isOpen = checkMarketOpen(market, symbol);
-            
+
             if (isOpen) {
                 if (actionsBox) actionsBox.style.display = 'block';
                 if (marketStatus) marketStatus.classList.remove('is-closed');

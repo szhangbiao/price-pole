@@ -463,6 +463,16 @@ body.dark-theme .detail-current-price {
     margin-top: 1rem;
 }
 
+.detail-change-box.price-up,
+.price-up {
+    color: #ef4444;
+}
+
+.detail-change-box.price-down,
+.price-down {
+    color: #22c55e;
+}
+
 .detail-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

@@ -7,7 +7,8 @@ const MARKET_NAMES: Record<string, string> = {
     'US': '美国市场',
     'METAL': '贵金属',
     'ENERGY': '能源/大宗',
-    'GLOBAL': '全球指数'
+    'GLOBAL': '全球指数',
+    'FOREX': '外汇/指数'
 }
 
 const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
@@ -24,8 +25,8 @@ const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
         ? data.reduce((latest, p) => p.updateTime > latest ? p.updateTime : latest, data[0].updateTime)
         : null;
 
-    // 排序：CN -> HK -> US -> METAL -> ENERGY -> GLOBAL
-    const sortedMarkets = ['CN', 'HK', 'US', 'METAL', 'ENERGY', 'GLOBAL']
+    // 排序：CN -> HK -> US -> METAL -> ENERGY -> GLOBAL -> FOREX
+    const sortedMarkets = ['CN', 'HK', 'US', 'METAL', 'ENERGY', 'GLOBAL', 'FOREX']
 
     return (
         <div class="monitor-container">
@@ -72,11 +73,14 @@ const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
 
                                             <div class="monitor-price-item-main">
                                                 <span class="monitor-price-item-value">
-                                                    {price.current.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                    {price.current.toLocaleString(undefined, { 
+                                                        minimumFractionDigits: price.market === 'FOREX' ? 4 : 2,
+                                                        maximumFractionDigits: price.market === 'FOREX' ? 4 : 2
+                                                    })}
                                                 </span>
                                                 <div class={`monitor-price-item-stats ${price.change >= 0 ? 'monitor-price-up' : 'monitor-price-down'}`}>
                                                     <span class="monitor-price-change">
-                                                        {price.change >= 0 ? '+' : ''}{price.change.toFixed(2)}
+                                                        {price.change >= 0 ? '+' : ''}{price.change.toFixed(price.market === 'FOREX' ? 4 : 2)}
                                                     </span>
                                                     <span class="monitor-price-percent">
                                                         {price.change >= 0 ? '+' : ''}{price.percent.toFixed(2)}%

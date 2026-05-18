@@ -14,7 +14,7 @@ const About: FC = () => {
           <h2 class="about-title">项目愿景</h2>
           <p class="about-description">
             本项目致力于打造一个轻量级、高性能的全球金融市场监控中心。通过 Cloudflare Workers 的边缘计算能力与 Upstash Redis 的持久化存储，
-            我们实现了对 A 股、港股、美股以及大宗商品市场的全天候数据追踪，帮助用户在毫秒级时间内掌握市场波动。
+            我们实现了对 A 股、港股、美股以及大宗商品市场的全天候数据追踪，帮助用户在分钟级时间内掌握市场价格波动。
           </p>
         </section>
 

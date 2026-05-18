@@ -187,6 +187,31 @@ export class SinaService {
                     market: 'GLOBAL'
                 };
             }
+            // 7. 美元指数 (DINIW) 及常用外汇直盘 (USDJPY, USDCNY)
+            else if (code === 'DINIW' || code === 'USDJPY' || code === 'USDCNY') {
+                const current = Number(parseFloat(dataArray[3]).toFixed(4)) || 0;
+                const lastClose = Number(parseFloat(dataArray[8]).toFixed(4)) || 0;
+                const change = Number((current - lastClose).toFixed(4));
+                const percent = lastClose > 0 ? Number(((change / lastClose) * 100).toFixed(2)) : 0;
+
+                const defaultName = code === 'DINIW' ? '美元指数' : code === 'USDJPY' ? '美元日元' : '美元人民币';
+                price = {
+                    symbol: code,
+                    name: dataArray[9] || defaultName,
+                    current: current,
+                    change: change,
+                    percent: percent,
+                    open: Number(parseFloat(dataArray[5]).toFixed(4)) || 0,
+                    high: Number(parseFloat(dataArray[6]).toFixed(4)) || 0,
+                    low: Number(parseFloat(dataArray[7]).toFixed(4)) || 0,
+                    lastClose: lastClose,
+                    volume: 0,
+                    amount: 0,
+                    updateTime: `${dataArray[10]} ${dataArray[0]}`,
+                    fetchTime: nowIso,
+                    market: 'FOREX'
+                };
+            }
 
             if (price) results.push(price);
         }

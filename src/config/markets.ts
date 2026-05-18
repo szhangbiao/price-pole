@@ -38,5 +38,9 @@ export const ENERGY_INDEX = [
 
 export const GLOBAL_INDEX = [
     { code: "znb_KOSPI", name: "韩国KOSPI指数" },
-    { code: "znb_NKY", name: "日经225指数" }
+    { code: "znb_NKY", name: "日经225指数" },
+    { code: "DINIW", name: "美元指数" },
+    { code: "USDJPY", name: "美元日元" },
+    { code: "USDCNY", name: "美元人民币" }
 ];
+
