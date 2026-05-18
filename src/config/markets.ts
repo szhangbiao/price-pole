@@ -9,19 +9,37 @@ export const A_SHARE_INDEX = [
     { code: "sh000016", name: "上证50" },
     { code: "sh000688", name: "科创50" },
     { code: "sh000699", name: "科创200" },
-    { code: "sz399673", name: "创业板50" }
+    { code: "sz399673", name: "创业板50" },
+    // 个股
+    { code: "sh600519", name: "贵州茅台" },
+    { code: "sz000858", name: "五粮液" },
+    { code: "sz002714", name: "牧原股份" },
+    { code: "sz300498", name: "温氏股份" },
+    { code: "sz000876", name: "新希望" }
 ];
 
 export const H_SHARE_INDEX = [
     { code: "rt_hkHSI", name: "恒生指数" },
     { code: "rt_hkHSCEI", name: "国企指数" },
-    { code: "rt_hkHSTECH", name: "恒生科技" }
+    { code: "rt_hkHSTECH", name: "恒生科技" },
+    // 个股
+    { code: "rt_hk01810", name: "小米集团-W" },
+    { code: "rt_hk09988", name: "阿里巴巴-SW" },
+    { code: "rt_hk00700", name: "腾讯控股" }
 ];
 
 export const US_STOCK_INDEX = [
     { code: "gb_dji", name: "道琼斯指数" },
     { code: "gb_ixic", name: "纳斯达克指数" },
-    { code: "gb_inx", name: "标普500指数" }
+    { code: "gb_inx", name: "标普500指数" },
+    // 美股七姐妹
+    { code: "gb_msft", name: "微软" },
+    { code: "gb_aapl", name: "苹果" },
+    { code: "gb_nvda", name: "英伟达" },
+    { code: "gb_googl", name: "谷歌A" },
+    { code: "gb_amzn", name: "亚马逊" },
+    { code: "gb_meta", name: "Meta" },
+    { code: "gb_tsla", name: "特斯拉" }
 ];
 
 // 贵金属 (Metal)
