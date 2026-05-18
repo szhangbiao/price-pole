@@ -8,13 +8,30 @@ const MARKET_NAMES: Record<string, string> = {
     'METAL': '贵金属',
     'ENERGY': '能源/大宗',
     'GLOBAL': '全球指数',
-    'FOREX': '外汇/指数'
+    'FOREX': '外汇/指数',
+    'BOND_CN': '中国国债',
+    'BOND_US': '美国国债',
+    'BOND_JP': '日本国债'
 }
+
+const getBondYear = (symbol: string): number => {
+    const match = symbol.match(/globalbd_(?:us|jp|cn)(\d+)yt/);
+    return match ? parseInt(match[1]) : 0;
+};
 
 const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
     // 按市场分组
     const groups = data.reduce((acc, price) => {
-        const market = price.market || 'OTHER'
+        let market: string = price.market || 'OTHER'
+        if (market === 'BOND') {
+            if (price.symbol.startsWith('globalbd_cn')) {
+                market = 'BOND_CN';
+            } else if (price.symbol.startsWith('globalbd_us')) {
+                market = 'BOND_US';
+            } else if (price.symbol.startsWith('globalbd_jp')) {
+                market = 'BOND_JP';
+            }
+        }
         if (!acc[market]) acc[market] = []
         acc[market].push(price)
         return acc
@@ -25,8 +42,8 @@ const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
         ? data.reduce((latest, p) => p.updateTime > latest ? p.updateTime : latest, data[0].updateTime)
         : null;
 
-    // 排序：CN -> HK -> US -> METAL -> ENERGY -> GLOBAL -> FOREX
-    const sortedMarkets = ['CN', 'HK', 'US', 'METAL', 'ENERGY', 'GLOBAL', 'FOREX']
+    // 排序：CN -> HK -> US -> METAL -> ENERGY -> GLOBAL -> FOREX -> BOND_CN -> BOND_US -> BOND_JP
+    const sortedMarkets = ['CN', 'HK', 'US', 'METAL', 'ENERGY', 'GLOBAL', 'FOREX', 'BOND_CN', 'BOND_US', 'BOND_JP']
 
     return (
         <div class="monitor-container">
@@ -44,8 +61,13 @@ const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
 
                 <div class="monitor-body">
                     {sortedMarkets.map(marketKey => {
-                        const prices = groups[marketKey]
+                        let prices = groups[marketKey]
                         if (!prices || prices.length === 0) return null
+
+                        // 如果是国债大类，按照年份从小到大排序
+                        if (marketKey.startsWith('BOND_')) {
+                            prices = [...prices].sort((a, b) => getBondYear(a.symbol) - getBondYear(b.symbol));
+                        }
 
                         return (
                             <section key={marketKey} class="monitor-market-section">
@@ -55,60 +77,65 @@ const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
                                 </div>
 
                                 <div class="monitor-price-grid">
-                                    {prices.map(price => (
-                                        <a
-                                            key={price.symbol}
-                                            href={`/monitor/${price.symbol}`}
-                                            class="monitor-price-item-card"
-                                            style="text-decoration: none; display: block;"
-                                        >
-                                            <div class="monitor-price-item-header">
-                                                <span class="monitor-price-item-name" title={price.name}>
-                                                    {price.name}
-                                                </span>
-                                                <span class="monitor-price-item-symbol">
-                                                    {price.symbol.replace('rt_hk', '').replace('gb_', '').replace('hf_', '')}
-                                                </span>
-                                            </div>
 
-                                            <div class="monitor-price-item-main">
-                                                <span class="monitor-price-item-value">
-                                                    {price.current.toLocaleString(undefined, { 
-                                                        minimumFractionDigits: price.market === 'FOREX' ? 4 : 2,
-                                                        maximumFractionDigits: price.market === 'FOREX' ? 4 : 2
-                                                    })}
-                                                </span>
-                                                <div class={`monitor-price-item-stats ${price.change >= 0 ? 'monitor-price-up' : 'monitor-price-down'}`}>
-                                                    <span class="monitor-price-change">
-                                                        {price.change >= 0 ? '+' : ''}{price.change.toFixed(price.market === 'FOREX' ? 4 : 2)}
+                                    {prices.map(price => {
+                                        const isHighPrecision = price.market === 'FOREX' || price.market === 'BOND';
+                                        return (
+                                            <a
+                                                key={price.symbol}
+                                                href={`/monitor/${price.symbol}`}
+                                                class="monitor-price-item-card"
+                                                style="text-decoration: none; display: block;"
+                                            >
+                                                <div class="monitor-price-item-header">
+                                                    <span class="monitor-price-item-name" title={price.name}>
+                                                        {price.name}
                                                     </span>
-                                                    <span class="monitor-price-percent">
-                                                        {price.change >= 0 ? '+' : ''}{price.percent.toFixed(2)}%
+                                                    <span class="monitor-price-item-symbol">
+                                                        {price.symbol.replace('rt_hk', '').replace('gb_', '').replace('hf_', '').replace('globalbd_', '')}
                                                     </span>
                                                 </div>
-                                            </div>
 
-                                            <div class="monitor-price-item-footer">
-                                                <div>
-                                                    <span class="monitor-footer-label">开:</span> {price.open}
+                                                <div class="monitor-price-item-main">
+                                                    <span class="monitor-price-item-value">
+                                                        {price.current.toLocaleString(undefined, {
+                                                            minimumFractionDigits: isHighPrecision ? 4 : 2,
+                                                            maximumFractionDigits: isHighPrecision ? 4 : 2
+                                                        })}
+                                                    </span>
+                                                    <div class={`monitor-price-item-stats ${price.change >= 0 ? 'monitor-price-up' : 'monitor-price-down'}`}>
+                                                        <span class="monitor-price-change">
+                                                            {price.change >= 0 ? '+' : ''}{price.change.toFixed(isHighPrecision ? 4 : 2)}
+                                                        </span>
+                                                        <span class="monitor-price-percent">
+                                                            {price.change >= 0 ? '+' : ''}{price.percent.toFixed(2)}%
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <div class="monitor-footer-item-right">
-                                                    <span class="monitor-footer-label">高:</span> {price.high}
+
+                                                <div class="monitor-price-item-footer">
+                                                    <div>
+                                                        <span class="monitor-footer-label">开:</span> {price.open.toFixed(isHighPrecision ? 4 : 2)}
+                                                    </div>
+                                                    <div class="monitor-footer-item-right">
+                                                        <span class="monitor-footer-label">高:</span> {price.high.toFixed(isHighPrecision ? 4 : 2)}
+                                                    </div>
+                                                    <div>
+                                                        <span class="monitor-footer-label">低:</span> {price.low.toFixed(isHighPrecision ? 4 : 2)}
+                                                    </div>
+                                                    <div class="monitor-footer-item-right monitor-footer-time">
+                                                        {price.updateTime}
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <span class="monitor-footer-label">低:</span> {price.low}
-                                                </div>
-                                                <div class="monitor-footer-item-right monitor-footer-time">
-                                                    {price.updateTime}
-                                                </div>
-                                            </div>
-                                        </a>
-                                    ))}
+                                            </a>
+                                        );
+                                    })}
                                 </div>
                             </section>
                         )
                     })}
                 </div>
+
 
                 {data.length === 0 && (
                     <div class="monitor-empty-state">

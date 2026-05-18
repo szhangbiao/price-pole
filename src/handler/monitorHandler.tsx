@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { SinaService } from '../service/sinaService';
 import { isMarketOpen, getBeijingDate } from '../utils/marketUtils';
 import { MarketPrice } from '../types/monitor';
-import { A_SHARE_INDEX, H_SHARE_INDEX, US_STOCK_INDEX, METAL_INDEX, ENERGY_INDEX, GLOBAL_INDEX } from '../config/markets';
+import { A_SHARE_INDEX, H_SHARE_INDEX, US_STOCK_INDEX, METAL_INDEX, ENERGY_INDEX, GLOBAL_INDEX, BOND_INDEX } from '../config/markets';
 import { WechatSendService } from '../service/wechatSend';
 import { PriceAlert } from '../types/price';
 import { UpstashService } from '../service/upstashService';
@@ -37,8 +37,10 @@ export class MonitorHandler {
 			...US_STOCK_INDEX,
 			...METAL_INDEX,
 			...ENERGY_INDEX,
-			...GLOBAL_INDEX
+			...GLOBAL_INDEX,
+			...BOND_INDEX
 		];
+
 		const symbols = Array.from(new Set(allIndices.map(idx => idx.code)));
 
 		// 2. 获取实时行情
@@ -55,7 +57,7 @@ export class MonitorHandler {
 		for (const price of prices) {
 			if (!isMarketOpen(price.market)) continue;
 
-			if (price.market === 'METAL' || price.market === 'ENERGY') {
+			if (price.market === 'METAL') {
 				// --- 商品监控逻辑：实时极值突破 ---
 				const stateKey = price.market.toLowerCase();
 				const highKey = `${stateKey}_high_${price.symbol}_${today}`;
@@ -65,8 +67,7 @@ export class MonitorHandler {
 
 				const isGold = price.name.includes('黄金') || price.name.includes('金');
 				const isSilver = price.name.includes('白银') || price.name.includes('银');
-				const isOil = price.name.includes('原油') || price.name.includes('油');
-				const assetName = isGold ? '黄金' : (isSilver ? '白银' : (isOil ? '原油' : '商品'));
+				const assetName = isGold ? '黄金' : (isSilver ? '白银' : '商品');
 
 				// 检查新高 (只要有突破就立即触发，无冷却限制)
 				if (price.high > 0 && price.high > lastHigh) {
@@ -93,7 +94,7 @@ export class MonitorHandler {
 					states[lowKey] = price.low;
 				}
 			} else {
-				// --- 指数监控逻辑：整数百分比突破 ---
+				// --- 指数/大宗/外汇/国债监控逻辑：整数百分比突破 ---
 				const levelKey = `idx_level_${price.symbol}_${today}`;
 				const lastLevel = states[levelKey] || 0;
 				// 计算当前涨跌幅的整数部分 (如 1.2% -> 1, -1.5% -> -1)
@@ -101,11 +102,20 @@ export class MonitorHandler {
 				const currentLevel = currentPercent > 0 ? Math.floor(currentPercent) : Math.ceil(currentPercent);
 				// 当绝对值大于等于 1% 且 整数位发生变化时触发
 				if (Math.abs(currentLevel) >= 1 && currentLevel !== lastLevel) {
+					let remark = '市场指数大幅波动，请留意风险。';
+					if (price.market === 'ENERGY') {
+						remark = '能源大宗商品价格波动较大，请密切关注。';
+					} else if (price.market === 'FOREX') {
+						remark = '外汇汇率波动较大，请关注外汇波动风险。';
+					} else if (price.market === 'BOND') {
+						remark = '国债收益率变动较大，请关注债市动态。';
+					}
+
 					await this.sendAlertToWechat({
 						name: price.name,
 						price: `${price.current} (${price.percent}%)`,
 						detail: `涨跌幅到: ${currentLevel}% (当前: ${currentPercent}%)`,
-						remark: '市场指数大幅波动，请留意风险。'
+						remark: remark
 					}, price.symbol);
 					states[levelKey] = currentLevel;
 				}

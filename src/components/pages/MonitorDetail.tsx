@@ -47,13 +47,13 @@ const MonitorDetail: FC<MonitorDetailProps> = ({ symbol, initialData }) => {
                     <div class="detail-price-section">
                         <div class="detail-current-price" id="current-price">
                             {initialData.current.toLocaleString(undefined, { 
-                                minimumFractionDigits: initialData.market === 'FOREX' ? 4 : 2,
-                                maximumFractionDigits: initialData.market === 'FOREX' ? 4 : 2
+                                minimumFractionDigits: (initialData.market === 'FOREX' || initialData.market === 'BOND') ? 4 : 2,
+                                maximumFractionDigits: (initialData.market === 'FOREX' || initialData.market === 'BOND') ? 4 : 2
                             })}
                         </div>
                         <div class={`detail-change-box ${initialData.change >= 0 ? 'price-up' : 'price-down'}`} id="change-box">
                             <span class="detail-change" id="price-change">
-                                {initialData.change >= 0 ? '+' : ''}{initialData.change.toFixed(initialData.market === 'FOREX' ? 4 : 2)}
+                                {initialData.change >= 0 ? '+' : ''}{initialData.change.toFixed((initialData.market === 'FOREX' || initialData.market === 'BOND') ? 4 : 2)}
                             </span>
                             <span class="detail-percent" id="price-percent">
                                 {initialData.change >= 0 ? '+' : ''}{initialData.percent.toFixed(2)}%
@@ -71,20 +71,21 @@ const MonitorDetail: FC<MonitorDetailProps> = ({ symbol, initialData }) => {
                     <div class="detail-grid">
                         <div class="detail-info-item">
                             <span class="label">最高</span>
-                            <span class="value" id="price-high">{initialData.high}</span>
+                            <span class="value" id="price-high">{initialData.high.toFixed((initialData.market === 'FOREX' || initialData.market === 'BOND') ? 4 : 2)}</span>
                         </div>
                         <div class="detail-info-item">
                             <span class="label">最低</span>
-                            <span class="value" id="price-low">{initialData.low}</span>
+                            <span class="value" id="price-low">{initialData.low.toFixed((initialData.market === 'FOREX' || initialData.market === 'BOND') ? 4 : 2)}</span>
                         </div>
                         <div class="detail-info-item">
                             <span class="label">开盘</span>
-                            <span class="value" id="price-open">{initialData.open}</span>
+                            <span class="value" id="price-open">{initialData.open.toFixed((initialData.market === 'FOREX' || initialData.market === 'BOND') ? 4 : 2)}</span>
                         </div>
                         <div class="detail-info-item">
                             <span class="label">昨收</span>
-                            <span class="value" id="price-last-close">{initialData.lastClose}</span>
+                            <span class="value" id="price-last-close">{initialData.lastClose.toFixed((initialData.market === 'FOREX' || initialData.market === 'BOND') ? 4 : 2)}</span>
                         </div>
+
                         <div class="detail-info-item">
                             <span class="label">成交量</span>
                             <span class="value" id="price-volume">{formatVolume(initialData.volume)}</span>

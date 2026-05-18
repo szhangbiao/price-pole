@@ -212,6 +212,31 @@ export class SinaService {
                     market: 'FOREX'
                 };
             }
+            // 8. 全球国债收益率 (globalbd_...)
+            else if (code.startsWith('globalbd_')) {
+                const current = Number(parseFloat(dataArray[1]).toFixed(4)) || 0;
+                const lastClose = Number(parseFloat(dataArray[2]).toFixed(4)) || 0;
+                const percent = Number(parseFloat(dataArray[7]).toFixed(2)) || 0;
+                const change = Number(parseFloat(dataArray[8]).toFixed(4)) || 0;
+
+                price = {
+                    symbol: code,
+                    name: dataArray[0],
+                    current: current,
+                    change: change,
+                    percent: percent,
+                    open: Number(parseFloat(dataArray[3]).toFixed(4)) || 0,
+                    high: Number(parseFloat(dataArray[4]).toFixed(4)) || 0,
+                    low: Number(parseFloat(dataArray[5]).toFixed(4)) || 0,
+                    lastClose: lastClose,
+                    volume: 0,
+                    amount: 0,
+                    updateTime: `${dataArray[12]} ${dataArray[13]}`,
+                    fetchTime: nowIso,
+                    market: 'BOND'
+                };
+            }
+
 
             if (price) results.push(price);
         }

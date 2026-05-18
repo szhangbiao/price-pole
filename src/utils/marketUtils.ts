@@ -23,8 +23,8 @@ export function isMarketOpen(marketType: string): boolean {
 
     // 1. 周末判断
     if (day === 0 || day === 6) {
-        // 国际期货及外汇品种（贵金属、能源、外汇）在周六早晨 06:00 前通常还在交易
-        if (marketType === 'METAL' || marketType === 'ENERGY' || marketType === 'FOREX') {
+        // 国际期货及外汇/国债品种（贵金属、能源、外汇、国债）在周六早晨 06:00 前通常还在交易
+        if (marketType === 'METAL' || marketType === 'ENERGY' || marketType === 'FOREX' || marketType === 'BOND') {
             if (day === 6 && currentTime < 600) return true;
         }
         return false;
@@ -43,7 +43,8 @@ export function isMarketOpen(marketType: string): boolean {
         case 'METAL':
         case 'ENERGY':
         case 'FOREX':
-            // 国际期货及外汇：周一早上 06:00 开盘
+        case 'BOND':
+            // 国际期货、外汇及全球国债：周一早上 06:00 开盘
             if (day === 1 && currentTime < 600) return false;
             return true;
         case 'GLOBAL': // 日韩市场 (比 A股 早 1 小时)
@@ -58,6 +59,7 @@ export function isMarketOpen(marketType: string): boolean {
  * 只有在至少一个市场开盘时才执行监控逻辑，节省资源
  */
 export function isAnyMarketOpen(): boolean {
-    const markets = ['CN', 'HK', 'US', 'METAL', 'ENERGY', 'GLOBAL', 'FOREX'];
+    const markets = ['CN', 'HK', 'US', 'METAL', 'ENERGY', 'GLOBAL', 'FOREX', 'BOND'];
     return markets.some(market => isMarketOpen(market));
 }
+

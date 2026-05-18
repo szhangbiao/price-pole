@@ -83,10 +83,10 @@
          */
         function checkMarketOpen(marketType, symbol = '') {
             const { day, currentTime } = getBeijingInfo();
-
+ 
             // 周末判断
             if (day === 0 || day === 6) {
-                if (marketType === 'METAL' || marketType === 'ENERGY' || marketType === 'FOREX') {
+                if (marketType === 'METAL' || marketType === 'ENERGY' || marketType === 'FOREX' || marketType === 'BOND') {
                     if (day === 6 && currentTime < 600) return true;
                 }
                 return false;
@@ -102,7 +102,8 @@
                 case 'METAL':
                 case 'ENERGY':
                 case 'FOREX':
-                    // 国际期货及外汇：周一凌晨 06:00 开盘
+                case 'BOND':
+                    // 国际期货、外汇及全球国债：周一凌晨 06:00 开盘
                     if (day === 1 && currentTime < 600) return false;
                     return true;
                 case 'GLOBAL':
@@ -132,22 +133,25 @@
 
                 if (result.success && result.data) {
                     const data = result.data;
+                    const isHighPrecision = market === 'FOREX' || market === 'BOND';
+
                     priceEl.innerText = data.current.toLocaleString(undefined, {
-                        minimumFractionDigits: market === 'FOREX' ? 4 : 2,
-                        maximumFractionDigits: market === 'FOREX' ? 4 : 2
+                        minimumFractionDigits: isHighPrecision ? 4 : 2,
+                        maximumFractionDigits: isHighPrecision ? 4 : 2
                     });
                     const isUp = data.change >= 0;
                     changeBox.className = 'detail-change-box ' + (isUp ? 'price-up' : 'price-down');
-                    changeEl.innerText = (isUp ? '+' : '') + data.change.toFixed(market === 'FOREX' ? 4 : 2);
+                    changeEl.innerText = (isUp ? '+' : '') + data.change.toFixed(isHighPrecision ? 4 : 2);
                     percentEl.innerText = (isUp ? '+' : '') + data.percent.toFixed(2) + '%';
 
-                    if (highEl) highEl.innerText = data.high;
-                    if (lowEl) lowEl.innerText = data.low;
-                    if (openEl) openEl.innerText = data.open;
-                    if (lastCloseEl) lastCloseEl.innerText = data.lastClose;
+                    if (highEl) highEl.innerText = parseFloat(data.high).toFixed(isHighPrecision ? 4 : 2);
+                    if (lowEl) lowEl.innerText = parseFloat(data.low).toFixed(isHighPrecision ? 4 : 2);
+                    if (openEl) openEl.innerText = parseFloat(data.open).toFixed(isHighPrecision ? 4 : 2);
+                    if (lastCloseEl) lastCloseEl.innerText = parseFloat(data.lastClose).toFixed(isHighPrecision ? 4 : 2);
                     if (volumeEl) volumeEl.innerText = formatVolume(data.volume);
                     if (amountEl) amountEl.innerText = formatVolume(data.amount);
                     if (timeEl) timeEl.innerText = data.updateTime;
+
 
                     if (data.extra) {
                         if (high52El && data.extra.high52w) high52El.innerText = data.extra.high52w;

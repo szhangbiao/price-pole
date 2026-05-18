@@ -44,3 +44,28 @@ export const GLOBAL_INDEX = [
     { code: "USDCNY", name: "美元人民币" }
 ];
 
+export const BOND_INDEX = [
+    // 美债
+    { code: "globalbd_us5yt", name: "美国5年期国债" },
+    { code: "globalbd_us10yt", name: "美国10年期国债" },
+    { code: "globalbd_us20yt", name: "美国20年期国债" },
+    { code: "globalbd_us30yt", name: "美国30年期国债" },
+
+    // 日债
+    { code: "globalbd_jp5yt", name: "日本5年期国债" },
+    { code: "globalbd_jp10yt", name: "日本10年期国债" },
+    { code: "globalbd_jp15yt", name: "日本15年期国债" },
+    { code: "globalbd_jp20yt", name: "日本20年期国债" },
+    { code: "globalbd_jp30yt", name: "日本30年期国债" },
+
+    // 中债
+    { code: "globalbd_cn5yt", name: "中国5年期国债" },
+    { code: "globalbd_cn10yt", name: "中国10年期国债" },
+    { code: "globalbd_cn15yt", name: "中国15年期国债" },
+    { code: "globalbd_cn20yt", name: "中国20年期国债" },
+    { code: "globalbd_cn30yt", name: "中国30年期国债" }
+];
+
+
+
+
