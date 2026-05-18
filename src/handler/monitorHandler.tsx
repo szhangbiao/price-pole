@@ -2,7 +2,7 @@ import { Context } from 'hono';
 import { SinaService } from '../service/sinaService';
 import { isMarketOpen, getBeijingDate } from '../utils/marketUtils';
 import { MarketPrice } from '../types/monitor';
-import { H_SHARE_INDEX, US_STOCK_INDEX, METAL_INDEX, ENERGY_INDEX, GLOBAL_INDEX } from '../config/markets';
+import { A_SHARE_INDEX, H_SHARE_INDEX, US_STOCK_INDEX, METAL_INDEX, ENERGY_INDEX, GLOBAL_INDEX } from '../config/markets';
 import { WechatSendService } from '../service/wechatSend';
 import { PriceAlert } from '../types/price';
 import { UpstashService } from '../service/upstashService';
@@ -32,6 +32,7 @@ export class MonitorHandler {
 	async runMonitor(): Promise<void> {
 		// 1. 汇总监控标的 (从 markets 配置中获取)
 		const allIndices = [
+			...A_SHARE_INDEX,
 			...H_SHARE_INDEX,
 			...US_STOCK_INDEX,
 			...METAL_INDEX,

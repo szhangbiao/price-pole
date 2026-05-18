@@ -35,23 +35,18 @@ export function isMarketOpen(marketType: string): boolean {
         case 'CN': // A股
             return (currentTime >= 930 && currentTime <= 1130) ||
                 (currentTime >= 1300 && currentTime <= 1500);
-
         case 'HK': // 港股
             return (currentTime >= 930 && currentTime <= 1200) ||
                 (currentTime >= 1300 && currentTime <= 1600);
-
         case 'US': // 美股
             return (currentTime >= 2130 || currentTime <= 400);
-
         case 'METAL':
         case 'ENERGY':
             // 国际期货：周一早上 06:00 开盘
             if (day === 1 && currentTime < 600) return false;
             return true;
-
         case 'GLOBAL': // 日韩市场 (比 A股 早 1 小时)
             return (currentTime >= 800 && currentTime <= 1430);
-
         default:
             return true;
     }
