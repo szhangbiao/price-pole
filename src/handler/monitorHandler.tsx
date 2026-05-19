@@ -142,6 +142,15 @@ export class MonitorHandler {
 	}
 
 	private async sendAlertToWechat(priceAlert: PriceAlert, symbol: string): Promise<void> {
+		// 限制只允许黄金和A股三大指数的通知，规避其他通知以减少推送频率
+		const isGold = priceAlert.name.includes('黄金') || priceAlert.name.includes('金') || symbol === 'hf_XAU';
+		const isAShareThreeIndices = ['sh000001', 'sz399001', 'sz399006'].includes(symbol);
+
+		if (!isGold && !isAShareThreeIndices) {
+			console.log(`[Monitor] Skip notification for ${priceAlert.name} (${symbol}) to avoid high frequency alerts.`);
+			return;
+		}
+
 		const toUserId = this.env.WX_TO_USERID;
 		// 黄金使用特定的模板，其他商品或指数使用通用模板
 		const templateId = priceAlert.name.includes('金') ? '-SAGVkPxKhCTCZcXZavNvaBMJUy7SdMWizNl7e8Iw88' : 'Rs1nTsKg3kiUrOeMAng9UkauEL6BwyUgOHp0DqiccxM';
