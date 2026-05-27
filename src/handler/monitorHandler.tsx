@@ -6,6 +6,7 @@ import { A_SHARE_INDEX, H_SHARE_INDEX, US_STOCK_INDEX, METAL_INDEX, ENERGY_INDEX
 import { WechatSendService } from '../service/wechatSend';
 import { PriceAlert } from '../types/price';
 import { UpstashService } from '../service/upstashService';
+import { KVService } from '../service/kvService';
 
 const KEY_MONITOR_STATE = 'monitor_state';
 const KEY_LATEST_PRICES = 'latest_prices';
@@ -17,12 +18,14 @@ export class MonitorHandler {
 	private sinaService: SinaService;
 	private wechatService: WechatSendService;
 	private upstashService: UpstashService;
+	private kvService: KVService;
 	private env: Env;
 
 	constructor(env: Env) {
 		this.sinaService = new SinaService();
 		this.wechatService = new WechatSendService();
 		this.upstashService = new UpstashService(env, 7 * 24 * 3600); // 设置 7 天过期时间
+		this.kvService = new KVService(env, 7 * 24 * 3600); // 设置 7 天过期时间
 		this.env = env;
 	}
 
@@ -53,6 +56,7 @@ export class MonitorHandler {
 		const states = await this.getStates();
 		const bjDate = getBeijingDate();
 		const today = bjDate.toISOString().split('T')[0];
+		let isDirty = false;
 
 		for (const price of prices) {
 			if (!isMarketOpen(price.market)) continue;
@@ -80,6 +84,7 @@ export class MonitorHandler {
 						}, price.symbol);
 					}
 					states[highKey] = price.high;
+					isDirty = true;
 				}
 				// 检查新低
 				if (price.low > 0 && (lastLow === 0 || price.low < lastLow)) {
@@ -92,6 +97,7 @@ export class MonitorHandler {
 						}, price.symbol);
 					}
 					states[lowKey] = price.low;
+					isDirty = true;
 				}
 			} else {
 				// --- 指数/大宗/外汇/国债监控逻辑：整数百分比突破 ---
@@ -118,11 +124,14 @@ export class MonitorHandler {
 						remark: remark
 					}, price.symbol);
 					states[levelKey] = currentLevel;
+					isDirty = true;
 				}
 			}
 		}
-		// 4. 保存最新状态
-		await this.saveStates(states);
+		// 4. 保存最新状态 (仅在数据被修改时写入，以节省 Redis 和 KV 写入次数并防止并发覆盖)
+		if (isDirty) {
+			await this.saveStates(states);
+		}
 	}
 
 	/**
@@ -133,12 +142,47 @@ export class MonitorHandler {
 	}
 
 	private async getStates(): Promise<Record<string, number>> {
-		const storage = await this.upstashService.getPrice(KEY_MONITOR_STATE);
-		return (storage?.data as Record<string, number>) || {};
+		// 1. 优先尝试从 Redis 获取
+		try {
+			const storage = await this.upstashService.getPrice(KEY_MONITOR_STATE);
+			if (storage?.data) {
+				return storage.data as Record<string, number>;
+			}
+		} catch (error) {
+			console.error('[Monitor] 从 Redis 获取状态失败:', error);
+		}
+
+		// 2. 如果 Redis 失败或无数据，尝试从 Cloudflare KV 获取（双重保障）
+		try {
+			const storage = await this.kvService.getPrice(KEY_MONITOR_STATE);
+			if (storage?.data) {
+				console.log('[Monitor] 从 Cloudflare KV 恢复状态成功');
+				return storage.data as Record<string, number>;
+			}
+		} catch (error) {
+			console.error('[Monitor] 从 Cloudflare KV 获取状态失败:', error);
+		}
+
+		return {};
 	}
 
 	private async saveStates(states: Record<string, number>): Promise<void> {
-		await this.upstashService.savePrice(KEY_MONITOR_STATE, states, 'monitor');
+		// 并发保存到 Redis 和 KV 备份，确保状态在外部服务故障时依然可靠
+		const promises: Promise<void>[] = [];
+
+		// 1. 保存到 Redis
+		promises.push(
+			this.upstashService.savePrice(KEY_MONITOR_STATE, states, 'monitor')
+				.catch(error => console.error('[Monitor] 保存状态到 Redis 失败:', error))
+		);
+
+		// 2. 保存到 KV 备份
+		promises.push(
+			this.kvService.savePrice(KEY_MONITOR_STATE, states, 'monitor')
+				.catch(error => console.error('[Monitor] 保存状态到 Cloudflare KV 失败:', error))
+		);
+
+		await Promise.all(promises);
 	}
 
 	private async sendAlertToWechat(priceAlert: PriceAlert, symbol: string): Promise<void> {

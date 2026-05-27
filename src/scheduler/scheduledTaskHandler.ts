@@ -42,7 +42,7 @@ export async function handleScheduledTask(event: ScheduledEvent, env: Env): Prom
     const isNotificationTime = shouldSendEmail(event.scheduledTime) || shouldSendWxMessage(event.scheduledTime);
 
     // 只有在开盘时间每半个小时去刷新价格，或者在需要发送通知的时间点刷新
-    if (isCNMarketOpen && (isHalfHourMark || isNotificationTime)) {
+    if ((isCNMarketOpen && isHalfHourMark) || isNotificationTime) {
         const priceHandler = new PriceHandler(env);
         // 强制刷新价格数据
         const data = await priceHandler.getPriceData('request_data', true);
