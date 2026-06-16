@@ -10,12 +10,13 @@ export const A_SHARE_INDEX = [
     { code: "sh000688", name: "科创50" },
     { code: "sh000699", name: "科创200" },
     { code: "sz399673", name: "创业板50" },
-    // 个股
+    // 个股/ETF
     { code: "sh600519", name: "贵州茅台" },
     { code: "sz000858", name: "五粮液" },
     { code: "sz002714", name: "牧原股份" },
     { code: "sz300498", name: "温氏股份" },
-    { code: "sz000876", name: "新希望" }
+    { code: "sz000876", name: "新希望" },
+    { code: "sh512890", name: "红利低波ETF" }
 ];
 
 export const H_SHARE_INDEX = [
@@ -25,7 +26,8 @@ export const H_SHARE_INDEX = [
     // 个股
     { code: "rt_hk01810", name: "小米集团-W" },
     { code: "rt_hk09988", name: "阿里巴巴-SW" },
-    { code: "rt_hk00700", name: "腾讯控股" }
+    { code: "rt_hk00700", name: "腾讯控股" },
+    { code: "rt_hk03690", name: "美团-W" }
 ];
 
 export const US_STOCK_INDEX = [
@@ -39,13 +41,20 @@ export const US_STOCK_INDEX = [
     { code: "gb_googl", name: "谷歌A" },
     { code: "gb_amzn", name: "亚马逊" },
     { code: "gb_meta", name: "Meta" },
-    { code: "gb_tsla", name: "特斯拉" }
+    { code: "gb_tsla", name: "特斯拉" },
+    { code: "gb_spcx", name: "SpaceX" },
+    { code: "gb_pdd", name: "拼多多" },
+    { code: "gb_brk$b", name: "伯克希尔" },
+    { code: "gb_tsm", name: "台积电" },
+    { code: "gb_coin", name: "Coinbase" }
 ];
 
 // 贵金属 (Metal)
 export const METAL_INDEX = [
     { code: "hf_XAU", name: "伦敦金" },
-    { code: "hf_XAG", name: "伦敦银" }
+    { code: "hf_XAG", name: "伦敦银" },
+    { code: "hf_HG", name: "美铜" },
+    { code: "hf_CAD", name: "伦铜" }
 ];
 
 // 能源/大宗商品 (Energy)
