@@ -73,21 +73,21 @@ export class MonitorHandler {
 				const isSilver = price.name.includes('白银') || price.name.includes('银');
 				const assetName = isGold ? '黄金' : (isSilver ? '白银' : '商品');
 
+				let alertHigh = false;
+				let alertLow = false;
+
 				// 检查新高 (只要有突破就立即触发，无冷却限制，且支持新交易日高点重置的静默更新)
 				if (price.high > 0) {
 					if (lastHigh > 0 && price.high < lastHigh) {
 						// 证明新一轮交易时段开启，新浪 API 重置了最高价，进行静默更新
 						states[highKey] = price.high;
+						isDirty = true;
 					} else if (lastHigh === 0 || price.high > lastHigh) {
 						if (lastHigh > 0) {
-							await this.sendAlertToWechat({
-								name: price.name,
-								price: `${price.current} (${price.percent}%)`,
-								detail: `突破今日前高: ${price.high} (前高: ${lastHigh})`,
-								remark: `${assetName}价格突破今日极值，请留意行情变动。`
-							}, price.symbol);
+							alertHigh = true;
 						}
 						states[highKey] = price.high;
+						isDirty = true;
 					}
 				}
 				// 检查新低 (支持新交易日低点重置的静默更新)
@@ -95,16 +95,35 @@ export class MonitorHandler {
 					if (lastLow > 0 && price.low > lastLow) {
 						// 证明新一轮交易时段开启，新浪 API 重置了最低价，进行静默更新
 						states[lowKey] = price.low;
+						isDirty = true;
 					} else if (lastLow === 0 || price.low < lastLow) {
 						if (lastLow > 0) {
-							await this.sendAlertToWechat({
-								name: price.name,
-								price: `${price.current} (${price.percent}%)`,
-								detail: `跌破今日前低: ${price.low} (前低: ${lastLow})`,
-								remark: `${assetName}价格跌破今日极值，请留意行情变动。`
-							}, price.symbol);
+							alertLow = true;
 						}
 						states[lowKey] = price.low;
+						isDirty = true;
+					}
+				}
+
+				// 防止异常数据（如刚开盘或API返回异常）导致前高和前低同时触发推送
+				if (alertHigh && alertLow) {
+					console.log(`[Monitor] 忽略同时触发高低点推送: ${price.symbol} high=${price.high}, low=${price.low}`);
+				} else {
+					if (alertHigh) {
+						await this.sendAlertToWechat({
+							name: price.name,
+							price: `${price.current} (${price.percent}%)`,
+							detail: `突破今日前高: ${price.high} (前高: ${lastHigh})`,
+							remark: `${assetName}价格突破今日极值，请留意行情变动。`
+						}, price.symbol);
+					}
+					if (alertLow) {
+						await this.sendAlertToWechat({
+							name: price.name,
+							price: `${price.current} (${price.percent}%)`,
+							detail: `跌破今日前低: ${price.low} (前低: ${lastLow})`,
+							remark: `${assetName}价格跌破今日极值，请留意行情变动。`
+						}, price.symbol);
 					}
 				}
 			} else {
