@@ -107,7 +107,7 @@ export class SinaService {
                 const change = Number((current - lastClose).toFixed(2));
                 const percent = lastClose > 0 ? Number(((change / lastClose) * 100).toFixed(2)) : 0;
 
-                const isMetal = code.includes('XAU') || code.includes('XAG');
+                const isMetal = code.includes('XAU') || code.includes('XAG') || code.includes('HG') || code.includes('CAD');
                 price = {
                     symbol: code,
                     name: dataArray[13] || (code === 'hf_XAU' ? '伦敦金' : code),

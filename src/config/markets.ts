@@ -42,6 +42,7 @@ export const US_STOCK_INDEX = [
     { code: "gb_amzn", name: "亚马逊" },
     { code: "gb_meta", name: "Meta" },
     { code: "gb_tsla", name: "特斯拉" },
+    { code: "gb_mu", name: "美光" },
     { code: "gb_spcx", name: "SpaceX" },
     { code: "gb_pdd", name: "拼多多" },
     { code: "gb_brk$b", name: "伯克希尔" },
