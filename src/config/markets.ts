@@ -42,12 +42,16 @@ export const US_STOCK_INDEX = [
     { code: "gb_amzn", name: "亚马逊" },
     { code: "gb_meta", name: "Meta" },
     { code: "gb_tsla", name: "特斯拉" },
+    // 其他
     { code: "gb_mu", name: "美光" },
+    { code: "gb_skhy", name: "海力士" },
     { code: "gb_spcx", name: "SpaceX" },
     { code: "gb_pdd", name: "拼多多" },
     { code: "gb_brk$b", name: "伯克希尔" },
     { code: "gb_tsm", name: "台积电" },
-    { code: "gb_coin", name: "Coinbase" }
+    { code: "gb_coin", name: "Coinbase" },
+    { code: "gb_ibm", name: "IBM" },
+    { code: "gb_sndk", name: "闪迪" }
 ];
 
 // 贵金属 (Metal)

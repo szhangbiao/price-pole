@@ -41,10 +41,10 @@ export class MonitorHandler {
 			...METAL_INDEX,
 			...ENERGY_INDEX,
 			...GLOBAL_INDEX,
-			...BOND_INDEX
+			...BOND_INDEX,
 		];
 
-		const symbols = Array.from(new Set(allIndices.map(idx => idx.code)));
+		const symbols = Array.from(new Set(allIndices.map((idx) => idx.code)));
 
 		// 2. 获取实时行情
 		const prices = await this.sinaService.getMarketData(symbols);
@@ -71,7 +71,7 @@ export class MonitorHandler {
 
 				const isGold = price.name.includes('黄金') || price.name.includes('金');
 				const isSilver = price.name.includes('白银') || price.name.includes('银');
-				const assetName = isGold ? '黄金' : (isSilver ? '白银' : '商品');
+				const assetName = isGold ? '黄金' : isSilver ? '白银' : '商品';
 
 				let alertHigh = false;
 				let alertLow = false;
@@ -110,20 +110,26 @@ export class MonitorHandler {
 					console.log(`[Monitor] 忽略同时触发高低点推送: ${price.symbol} high=${price.high}, low=${price.low}`);
 				} else {
 					if (alertHigh) {
-						await this.sendAlertToWechat({
-							name: price.name,
-							price: `${price.current} (${price.percent}%)`,
-							detail: `突破今日前高: ${price.high} (前高: ${lastHigh})`,
-							remark: `${assetName}价格突破今日极值，请留意行情变动。`
-						}, price.symbol);
+						await this.sendAlertToWechat(
+							{
+								name: price.name,
+								price: `${price.current} (${price.percent}%)`,
+								detail: `突破今日前高: ${price.high} (前高: ${lastHigh})`,
+								remark: `${assetName}价格突破今日极值，请留意行情变动。`,
+							},
+							price.symbol,
+						);
 					}
 					if (alertLow) {
-						await this.sendAlertToWechat({
-							name: price.name,
-							price: `${price.current} (${price.percent}%)`,
-							detail: `跌破今日前低: ${price.low} (前低: ${lastLow})`,
-							remark: `${assetName}价格跌破今日极值，请留意行情变动。`
-						}, price.symbol);
+						await this.sendAlertToWechat(
+							{
+								name: price.name,
+								price: `${price.current} (${price.percent}%)`,
+								detail: `跌破今日前低: ${price.low} (前低: ${lastLow})`,
+								remark: `${assetName}价格跌破今日极值，请留意行情变动。`,
+							},
+							price.symbol,
+						);
 					}
 				}
 			} else {
@@ -144,12 +150,15 @@ export class MonitorHandler {
 						remark = '国债收益率变动较大，请关注债市动态。';
 					}
 
-					await this.sendAlertToWechat({
-						name: price.name,
-						price: `${price.current} (${price.percent}%)`,
-						detail: `涨跌幅到: ${currentLevel}% (当前: ${currentPercent}%)`,
-						remark: remark
-					}, price.symbol);
+					await this.sendAlertToWechat(
+						{
+							name: price.name,
+							price: `${price.current} (${price.percent}%)`,
+							detail: `涨跌幅到: ${currentLevel}% (当前: ${currentPercent}%)`,
+							remark: remark,
+						},
+						price.symbol,
+					);
 					states[levelKey] = currentLevel;
 					isDirty = true;
 				}
@@ -166,6 +175,19 @@ export class MonitorHandler {
 	 */
 	async getSymbolsData(symbols: string[]): Promise<MarketPrice[]> {
 		return await this.sinaService.getMarketData(symbols);
+	}
+
+	private getConfiguredSymbols(): string[] {
+		const allIndices = [
+			...A_SHARE_INDEX,
+			...H_SHARE_INDEX,
+			...US_STOCK_INDEX,
+			...METAL_INDEX,
+			...ENERGY_INDEX,
+			...GLOBAL_INDEX,
+			...BOND_INDEX,
+		];
+		return Array.from(new Set(allIndices.map((idx) => idx.code)));
 	}
 
 	private async getStates(): Promise<Record<string, number>> {
@@ -199,14 +221,16 @@ export class MonitorHandler {
 
 		// 1. 保存到 Redis
 		promises.push(
-			this.upstashService.savePrice(KEY_MONITOR_STATE, states, 'monitor')
-				.catch(error => console.error('[Monitor] 保存状态到 Redis 失败:', error))
+			this.upstashService
+				.savePrice(KEY_MONITOR_STATE, states, 'monitor')
+				.catch((error) => console.error('[Monitor] 保存状态到 Redis 失败:', error)),
 		);
 
 		// 2. 保存到 KV 备份
 		promises.push(
-			this.kvService.savePrice(KEY_MONITOR_STATE, states, 'monitor')
-				.catch(error => console.error('[Monitor] 保存状态到 Cloudflare KV 失败:', error))
+			this.kvService
+				.savePrice(KEY_MONITOR_STATE, states, 'monitor')
+				.catch((error) => console.error('[Monitor] 保存状态到 Cloudflare KV 失败:', error)),
 		);
 
 		await Promise.all(promises);
@@ -224,7 +248,9 @@ export class MonitorHandler {
 
 		const toUserId = this.env.WX_TO_USERID;
 		// 黄金使用特定的模板，其他商品或指数使用通用模板
-		const templateId = priceAlert.name.includes('金') ? '-SAGVkPxKhCTCZcXZavNvaBMJUy7SdMWizNl7e8Iw88' : 'Rs1nTsKg3kiUrOeMAng9UkauEL6BwyUgOHp0DqiccxM';
+		const templateId = priceAlert.name.includes('金')
+			? '-SAGVkPxKhCTCZcXZavNvaBMJUy7SdMWizNl7e8Iw88'
+			: 'Rs1nTsKg3kiUrOeMAng9UkauEL6BwyUgOHp0DqiccxM';
 
 		// 动态构造详情页 URL (路径式路由)
 		const detailUrl = `https://price-pole.szhangbiao.cn/monitor/${symbol}`;
@@ -247,13 +273,29 @@ export class MonitorHandler {
 		}
 
 		// 2. 将新获取的价格合并进去 (覆盖旧值)
-		newPrices.forEach(p => {
+		newPrices.forEach((p) => {
 			priceMap[p.symbol] = p;
 		});
 
 		// 3. 写回 Redis (永不过期或设置较长 TTL)
 		const allPrices = Object.values(priceMap);
 		await this.upstashService.savePrice(KEY_LATEST_PRICES, allPrices, 'monitor');
+	}
+
+	public async getLatestPricesEnsured(): Promise<MarketPrice[]> {
+		const cached = await this.getLatestPricesCached();
+		const cachedSet = new Set(cached.map((p) => p.symbol));
+		const configuredSymbols = this.getConfiguredSymbols();
+		const missingSymbols = configuredSymbols.filter((s) => !cachedSet.has(s));
+
+		if (missingSymbols.length === 0) return cached;
+
+		const missingPrices = await this.getSymbolsData(missingSymbols);
+		if (missingPrices.length > 0) {
+			await this.updateLatestPrices(missingPrices);
+		}
+
+		return await this.getLatestPricesCached();
 	}
 
 	/**
@@ -274,7 +316,7 @@ export async function getMarketData(c: Context<{ Bindings: Env }>) {
 		return c.json({ success: false, message: '缺少 symbol 参数' }, 400);
 	}
 
-	const symbols = symbolStr.split(',').filter(s => s.trim().length > 0);
+	const symbols = symbolStr.split(',').filter((s) => s.trim().length > 0);
 	if (symbols.length === 0) {
 		return c.json({ success: false, message: '无效的 symbol 参数' }, 400);
 	}
@@ -288,7 +330,7 @@ export async function getMarketData(c: Context<{ Bindings: Env }>) {
 	return c.json({
 		success: true,
 		count: data.length,
-		data: symbols.length === 1 ? data[0] : data
+		data: symbols.length === 1 ? data[0] : data,
 	});
 }
 
@@ -301,7 +343,7 @@ export async function getAllLatestPrices(c: Context<{ Bindings: Env }>) {
 	return c.json({
 		success: true,
 		count: data.length,
-		data: data
+		data: data,
 	});
 }
 
@@ -325,13 +367,13 @@ export async function getSingleMarketData(c: Context<{ Bindings: Env }>) {
 	} else {
 		// 默认从 Redis 缓存获取
 		const allPrices = await handler.getLatestPricesCached();
-		price = allPrices.find(p => p.symbol === symbol);
+		price = allPrices.find((p) => p.symbol === symbol);
 	}
 
 	return c.json({
 		success: true,
 		data: price || null,
 		isOpen: price ? isMarketOpen(price.market) : false,
-		source: force ? 'sina' : 'redis'
+		source: force ? 'sina' : 'redis',
 	});
 }

@@ -34,7 +34,7 @@ router.get('/', async (c) => {
 router.get('/about', (c) => c.html(<Layout currentPath="/about"><About /></Layout>))
 router.get('/monitor', async (c) => {
   const monitorHandler = new MonitorHandler(c.env);
-  const latestPrices = await monitorHandler.getLatestPricesCached();
+  const latestPrices = await monitorHandler.getLatestPricesEnsured();
 
   return c.html(
     <Layout currentPath="/monitor">

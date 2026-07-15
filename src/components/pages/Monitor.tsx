@@ -43,7 +43,9 @@ const Monitor: FC<{ data: MarketPrice[] }> = ({ data = [] }) => {
         : null;
 
     // 排序：CN -> HK -> US -> METAL -> ENERGY -> GLOBAL -> FOREX -> BOND_CN -> BOND_US -> BOND_JP
-    const sortedMarkets = ['CN', 'HK', 'US', 'METAL', 'ENERGY', 'GLOBAL', 'FOREX', 'BOND_CN', 'BOND_US', 'BOND_JP']
+    const preferredMarkets = ['CN', 'HK', 'US', 'METAL', 'ENERGY', 'GLOBAL', 'FOREX', 'BOND_CN', 'BOND_US', 'BOND_JP']
+    const otherMarkets = Object.keys(groups).filter(m => !preferredMarkets.includes(m)).sort()
+    const sortedMarkets = [...preferredMarkets, ...otherMarkets]
 
     return (
         <div class="monitor-container">
